@@ -1,6 +1,8 @@
 ﻿using ModHUD.Enums;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -32,8 +34,13 @@ namespace ModAudio
         private static Watch LocalWatch;
         private static PlayerConditionModule LocalPlayerConditionModule;
 
+        private static CompareArrayByDimension LocalDimensionComparer = new CompareArrayByDimension();
+        private static SortedDictionary<int, List<string>> LocalSortedTextures = new SortedDictionary<int, List<string>>(LocalDimensionComparer);
+        private static readonly string ReportPath = $"{Application.dataPath.Replace("GH_Data", "Logs")}" + "/ModHUD_textures_dump_" + DateTime.Now.ToLongTimeString().Replace(':', '_') + ".log";
+
         // Based on Watch
-        public static GameObject LocalHUDCanvas;
+        public static GameObject LocalCompass = new GameObject(nameof(LocalCompass));
+        public static GameObject LocalHUDCanvas = new GameObject(nameof(LocalHUDCanvas));
         public static Dictionary<int, WatchData> LocalHUDCanvasDatas = new Dictionary<int, WatchData>();
         public static Image LocalProteins;
         public static Image LocalProteinsBG;
@@ -56,7 +63,6 @@ namespace ModAudio
         }
 
         public static string OnlyForSinglePlayerOrHostMessage() => $"Only available for single player or when host. Host can activate using ModManager.";
-
         public static string PermissionChangedMessage(string permission) => $"Permission to use mods and cheats in multiplayer was {permission}";
         public static string HUDBigInfoMessage(string message, MessageType messageType, Color? headcolor = null)
             => $"<color=#{ (headcolor != null ? ColorUtility.ToHtmlStringRGBA(headcolor.Value) : ColorUtility.ToHtmlStringRGBA(Color.red))  }>{messageType}</color>\n{message}";
@@ -138,6 +144,12 @@ namespace ModAudio
                 }
                 ToggleShowUI();
             }
+
+            if (Input.GetKey(KeyCode.RightControl) && Input.GetKeyDown(KeyCode.T))
+            {
+                DumpTextures();
+                ShowHUDBigInfo(HUDBigInfoMessage($"Dumped all texture info to {ReportPath}", MessageType.Info));
+            }
         }
 
         private void ToggleShowUI()
@@ -161,7 +173,17 @@ namespace ModAudio
             LocalPlayer = Player.Get();
             LocalWatch = Watch.Get();
             LocalPlayerConditionModule = PlayerConditionModule.Get();
-            InitLocalHUDCanvas();
+            // InitLocalHUDCanvas();
+            InitLocalCompass();
+        }
+
+        private void InitLocalCompass()
+        {
+            LocalCompass = LocalWatch?.m_Canvas.transform.Find("Compass").gameObject.transform.Find("CompassIcon").gameObject;
+            if (LocalCompass == null)
+            {
+                LocalCompass = new GameObject(nameof(LocalCompass));
+            }
         }
 
         private void InitLocalHUDCanvas()
@@ -217,7 +239,7 @@ namespace ModAudio
             try
             {
                 int wid = GetHashCode();
-                ModHUDScreen = GUILayout.Window(wid, ModHUDScreen, InitModHUDScreen, ModName,
+                ModHUDScreen = GUILayout.Window(wid, ModHUDScreen, InitModHUDScreen, "",
                                                                                         GUI.skin.label,
                                                                                         GUILayout.ExpandWidth(true),
                                                                                         GUILayout.MinWidth(ModScreenMinWidth),
@@ -264,7 +286,7 @@ namespace ModAudio
                             float fatMaxValue = LocalPlayerConditionModule.GetMaxNutritionFat();
                             float fatValue = LocalPlayerConditionModule.GetNutritionFat();
                             GUILayout.Label("fats");
-                            GUILayout.HorizontalSlider(fatValue, fatMinValue, fatMaxValue);
+                            GUILayout.HorizontalSlider(fatValue, fatMinValue, fatMaxValue, GUILayout.Width(175f));
                         }
 
                         using (var carboScope = new GUILayout.HorizontalScope(GUI.skin.label))
@@ -275,7 +297,7 @@ namespace ModAudio
                             float carboMaxValue = LocalPlayerConditionModule.GetMaxNutritionCarbo();
                             float carboValue = LocalPlayerConditionModule.GetNutritionCarbo();
                             GUILayout.Label("carbs");
-                            GUILayout.HorizontalSlider(carboValue, carboMinValue, carboMaxValue);
+                            GUILayout.HorizontalSlider(carboValue, carboMinValue, carboMaxValue, GUILayout.Width(175f));
                         }
 
                         using (var hydrationScope = new GUILayout.HorizontalScope(GUI.skin.label))
@@ -286,7 +308,7 @@ namespace ModAudio
                             float hydrationMaxValue = LocalPlayerConditionModule.GetMaxHydration();
                             float hydrationValue = LocalPlayerConditionModule.GetHydration();
                             GUILayout.Label("hydration");
-                            GUILayout.HorizontalSlider(hydrationValue, hydrationMinValue, hydrationMaxValue);
+                            GUILayout.HorizontalSlider(hydrationValue, hydrationMinValue, hydrationMaxValue, GUILayout.Width(175f));
                         }
 
                         using (var proteinScope = new GUILayout.HorizontalScope(GUI.skin.label))
@@ -297,40 +319,40 @@ namespace ModAudio
                             float proteinsMaxValue = LocalPlayerConditionModule.GetMaxNutritionProtein();
                             float proteinsValue = LocalPlayerConditionModule.GetNutritionProtein();
                             GUILayout.Label("proteins");
-                            GUILayout.HorizontalSlider(proteinsValue, proteinsMinValue, proteinsMaxValue);
+                            GUILayout.HorizontalSlider(proteinsValue, proteinsMinValue, proteinsMaxValue, GUILayout.Width(175f));
                         }
 
-                        using (var fatImageScope = new GUILayout.HorizontalScope(GUI.skin.label))
-                        {
-                            float fillAmount2 = LocalPlayer.GetNutritionFat() / LocalPlayer.GetMaxNutritionFat();
-                            LocalFat.fillAmount = fillAmount2;
-                            GUILayout.Box(LocalFat.mainTexture);
-                            GUILayout.Box(LocalFatBG.mainTexture);
-                        }
+                        //using (var fatImageScope = new GUILayout.HorizontalScope(GUI.skin.label))
+                        //{
+                        //    float fillAmount2 = LocalPlayer.GetNutritionFat() / LocalPlayer.GetMaxNutritionFat();
+                        //    LocalFat.fillAmount = fillAmount2;
+                        //    GUILayout.Box(LocalFat.mainTexture);
+                        //    GUILayout.Box(LocalFatBG.mainTexture);
+                        //}
 
-                        using (var carbsImageScope = new GUILayout.HorizontalScope(GUI.skin.label))
-                        {
-                            float fillAmount3 = LocalPlayer.GetNutritionCarbo() / LocalPlayer.GetMaxNutritionCarbo();
-                            LocalCarbs.fillAmount = fillAmount3;
-                            GUILayout.Box(LocalCarbs.mainTexture);
-                            GUILayout.Box(LocalCarbsBG.mainTexture);
-                        }
+                        //using (var carbsImageScope = new GUILayout.HorizontalScope(GUI.skin.label))
+                        //{
+                        //    float fillAmount3 = LocalPlayer.GetNutritionCarbo() / LocalPlayer.GetMaxNutritionCarbo();
+                        //    LocalCarbs.fillAmount = fillAmount3;
+                        //    GUILayout.Box(LocalCarbs.mainTexture);
+                        //    GUILayout.Box(LocalCarbsBG.mainTexture);
+                        //}
 
-                        using (var hydrationImageScope = new GUILayout.HorizontalScope(GUI.skin.label))
-                        {
-                            float fillAmount4 = LocalPlayer.GetHydration() / LocalPlayer.GetMaxHydration();
-                            LocalHydration.fillAmount = fillAmount4;
-                            GUILayout.Box(LocalHydration.mainTexture);
-                            GUILayout.Box(LocalHydrationBG.mainTexture);
-                        }
+                        //using (var hydrationImageScope = new GUILayout.HorizontalScope(GUI.skin.label))
+                        //{
+                        //    float fillAmount4 = LocalPlayer.GetHydration() / LocalPlayer.GetMaxHydration();
+                        //    LocalHydration.fillAmount = fillAmount4;
+                        //    GUILayout.Box(LocalHydration.mainTexture);
+                        //    GUILayout.Box(LocalHydrationBG.mainTexture);
+                        //}
 
-                        using (var proteinImageScope = new GUILayout.HorizontalScope(GUI.skin.label))
-                        {
-                            float fillAmount = LocalPlayer.GetNutritionProtein() / LocalPlayer.GetMaxNutritionProtein();
-                            LocalProteins.fillAmount = fillAmount;
-                            GUILayout.Box(LocalProteins.mainTexture);
-                            GUILayout.Box(LocalProteinsBG.mainTexture);
-                        }
+                        //using (var proteinImageScope = new GUILayout.HorizontalScope(GUI.skin.label))
+                        //{
+                        //    float fillAmount = LocalPlayer.GetNutritionProtein() / LocalPlayer.GetMaxNutritionProtein();
+                        //    LocalProteins.fillAmount = fillAmount;
+                        //    GUILayout.Box(LocalProteins.mainTexture);
+                        //    GUILayout.Box(LocalProteinsBG.mainTexture);
+                        //}
                     }
                 }
                 else
@@ -358,15 +380,30 @@ namespace ModAudio
                 Color defaultC = GUI.color;
                 if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
                 {
-                    using (var compassScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                    using (var compassScope = new GUILayout.VerticalScope(GUI.skin.label))
                     {
-                        LocalPlayer.GetGPSCoordinates(out int gps_lat, out int gps_long);
-                        string GPSCoordinatesW = gps_lat.ToString();
-                        string GPSCoordinatesS = gps_long.ToString();
-                        GUI.color = Color.red;
-                        GUILayout.Label($"South: { GPSCoordinatesS}", GUI.skin.label);
-                        GUI.color = Color.white;
-                        GUILayout.Label($"West: { GPSCoordinatesW}", GUI.skin.label);
+                        using (var positionScope = new GUILayout.HorizontalScope(GUI.skin.label))
+                        {
+                            LocalPlayer.GetGPSCoordinates(out int gps_lat, out int gps_long);
+                            string GPSCoordinatesW = gps_lat.ToString();
+                            string GPSCoordinatesS = gps_long.ToString();
+                            GUI.color = Color.red;
+                            GUILayout.Label($"South: { GPSCoordinatesS}", GUI.skin.label);
+                            GUI.color = Color.white;
+                            GUILayout.Label($"West: { GPSCoordinatesW}", GUI.skin.label);
+                        }
+                        using (var directionScope = new GUILayout.HorizontalScope(GUI.skin.label))
+                        {
+                            Vector3 forward = LocalPlayer.gameObject.transform.forward;
+                            float angle = Vector3.Angle(Vector3.forward, forward);
+                            if (forward.x < 0f)
+                            {
+                                angle = 360f - angle;
+                            }
+                            Quaternion rotation = Quaternion.Euler(new Vector3(0f, 0f, angle));
+                            LocalCompass.transform.rotation = rotation;
+                            GUILayout.Label($"Direction: {rotation}");
+                        }
                     }
                 }
                 else
@@ -385,5 +422,60 @@ namespace ModAudio
                 HandleException(exc, nameof(CompassBox));
             }
         }
+
+        private void DumpTextures()
+        {
+            try
+            {
+                FileStream fileStream = File.Create(ReportPath);
+                string text2 = string.Empty;
+                LocalSortedTextures.Clear();
+                Texture[] array = Resources.FindObjectsOfTypeAll<Texture>();
+                int num = 0;
+                foreach (Texture texture in array)
+                {
+                    int num2 = texture.width * texture.height;
+                    if (!LocalSortedTextures.ContainsKey(num2))
+                    {
+                        LocalSortedTextures.Add(num2, new List<string>());
+                    }
+                    else
+                    {
+                        LocalSortedTextures[num2].Add(texture.name);
+                    }
+                    num += num2;
+                }
+                SortedDictionary<int, List<string>>.Enumerator enumerator = LocalSortedTextures.GetEnumerator();
+                while (enumerator.MoveNext())
+                {
+                    enumerator.Current.Value.Sort();
+                }
+                enumerator = LocalSortedTextures.GetEnumerator();
+                while (enumerator.MoveNext())
+                {
+                    enumerator.Current.Value.Sort();
+                }
+                enumerator = LocalSortedTextures.GetEnumerator();
+                while (enumerator.MoveNext())
+                {
+                    List<string>.Enumerator enumerator2 = enumerator.Current.Value.GetEnumerator();
+                    while (enumerator2.MoveNext())
+                    {
+                        text2 = text2 + "Name: " + enumerator2.Current;
+                        text2 = text2 + " Mem: " + enumerator.Current.Key;
+                        text2 += Environment.NewLine;
+                    }
+                }
+                text2 = text2 + "TotalMem: " + num;
+                byte[] bytes = Encoding.ASCII.GetBytes(text2);
+                fileStream.Write(bytes, 0, bytes.Length);
+                fileStream.Close();
+            }
+            catch (Exception exc)
+            {
+                HandleException(exc, nameof(DumpTextures));
+            }
+        }
+
     }
 }
