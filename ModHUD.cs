@@ -372,7 +372,7 @@ namespace ModAudio
                 Color defaultC = GUI.color;
                 GUIStyle labelStyle = new GUIStyle(GUI.skin.label)
                 {
-                    fixedWidth = 25f,
+                    fixedWidth = 50f,
                     fontSize = 18
                 };
 
