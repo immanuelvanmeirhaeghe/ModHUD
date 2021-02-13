@@ -33,9 +33,16 @@ namespace ModAudio
         private static PlayerConditionModule LocalPlayerConditionModule;
 
         // Based on Watch
-        public GameObject LocalHUDCanvas = new GameObject();
-        private Dictionary<int, WatchData> LocalHUDCanvasDatas = new Dictionary<int, WatchData>();
-        public static float LocalProteinsValue;
+        public static GameObject LocalHUDCanvas;
+        public static Dictionary<int, WatchData> LocalHUDCanvasDatas = new Dictionary<int, WatchData>();
+        public static Image LocalProteins;
+        public static Image LocalProteinsBG;
+        public static Image LocalFat;
+        public static Image LocalFatBG;
+        public static Image LocalCarbs;
+        public static Image LocalCarbsBG;
+        public static Image LocalHydration;
+        public static Image LocalHydrationBG;
 
         public ModHUD()
         {
@@ -159,7 +166,36 @@ namespace ModAudio
 
         private void InitLocalHUDCanvas()
         {
-            LocalHUDCanvas = new GameObject(nameof(LocalHUDCanvas));
+            LocalHUDCanvas = LocalWatch?.m_Canvas?.transform.Find("Macronutrients").gameObject;
+
+            LocalFatBG = LocalHUDCanvas?.transform.Find("FatBG").GetComponent<Image>();
+            LocalFat = LocalHUDCanvas?.transform.Find("Fat").GetComponent<Image>();
+            if (LocalFat!= null)
+            {
+                LocalFat.type = Image.Type.Filled;
+            }
+
+            LocalCarbsBG = LocalHUDCanvas?.transform.Find("CarboBG").GetComponent<Image>();
+            LocalCarbs = LocalHUDCanvas?.transform.Find("Carbo").GetComponent<Image>();
+            if (LocalCarbs != null)
+            {
+                LocalCarbs.type = Image.Type.Filled;
+            }
+
+            LocalProteinsBG = LocalHUDCanvas?.transform.Find("ProteinsBG").GetComponent<Image>();
+            LocalProteins =LocalHUDCanvas?.transform.Find("Proteins").GetComponent<Image>();
+            if (LocalProteins != null)
+            {
+                LocalProteins.type = Image.Type.Filled;
+            }
+
+            LocalHydrationBG = LocalHUDCanvas?.transform.Find("HydrationBG").GetComponent<Image>();
+            LocalHydration = LocalHUDCanvas?.transform.Find("Hydration").GetComponent<Image>();
+            if (LocalHydration != null)
+            {
+                LocalHydration.type = Image.Type.Filled;
+            }
+
         }
 
         private void InitSkinUI()
@@ -238,49 +274,68 @@ namespace ModAudio
         {
             try
             {
-                Color defaultBG = GUI.backgroundColor;
+                Color defaultC = GUI.color;
+                Color defaultCBG = GUI.backgroundColor;
                 if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
                 {
                     using (var macroNutrientsScope = new GUILayout.VerticalScope(GUI.skin.box))
                     {
-                        GUI.backgroundColor = IconColors.GetColor(IconColors.Icon.Proteins);
+                        using (var fatScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                        {
+                            GUI.backgroundColor = IconColors.GetColor(IconColors.Icon.Fat);
+                            GUI.color = IconColors.GetColor(IconColors.Icon.Fat);
+                            float fatMinValue = 0f;
+                            float fatMaxValue = LocalPlayerConditionModule.GetMaxNutritionFat();
+                            float fatValue = LocalPlayerConditionModule.GetNutritionFat();
+                            GUILayout.HorizontalSlider(fatValue, fatMinValue, fatMaxValue);
+                            float fillAmount2 = LocalPlayer.GetNutritionFat() / LocalPlayer.GetMaxNutritionFat();
+                            LocalFat.fillAmount = fillAmount2;
+                            LocalFat.color = GUI.color;
+                        }
+
+                        using (var carboScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                        {
+                            GUI.backgroundColor = IconColors.GetColor(IconColors.Icon.Carbo);
+                            GUI.color = IconColors.GetColor(IconColors.Icon.Carbo);
+                            float carboMinValue = 0f;
+                            float carboMaxValue = LocalPlayerConditionModule.GetMaxNutritionCarbo();
+                            float carboValue = LocalPlayerConditionModule.GetNutritionCarbo();
+                            GUILayout.HorizontalSlider(carboValue, carboMinValue, carboMaxValue);
+                            float fillAmount3 = LocalPlayer.GetNutritionCarbo() / LocalPlayer.GetMaxNutritionCarbo();
+                            LocalCarbs.fillAmount = fillAmount3;
+                            LocalCarbs.color = GUI.color;
+                        }
+
+                        using (var hydrationScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                        {
+                            GUI.backgroundColor = IconColors.GetColor(IconColors.Icon.Hydration);
+                            GUI.color = IconColors.GetColor(IconColors.Icon.Hydration);
+                            float hydrationMinValue = 0f;
+                            float hydrationMaxValue = LocalPlayerConditionModule.GetMaxHydration();
+                            float hydrationValue = LocalPlayerConditionModule.GetHydration();
+                            GUILayout.HorizontalSlider(hydrationValue, hydrationMinValue, hydrationMaxValue);
+                            float fillAmount4 = LocalPlayer.GetHydration() / LocalPlayer.GetMaxHydration();
+                            LocalHydration.fillAmount = fillAmount4;
+                            LocalHydration.color = GUI.color;
+                        }
+
                         using (var proteinScope = new GUILayout.HorizontalScope(GUI.skin.box))
                         {
-                            float fillAmount = LocalPlayer.GetNutritionProtein() / LocalPlayer.GetMaxNutritionProtein();
+                            GUI.backgroundColor = IconColors.GetColor(IconColors.Icon.Proteins);
+                            GUI.color = IconColors.GetColor(IconColors.Icon.Proteins);
                             float proteinsMinValue = 0f;
                             float proteinsMaxValue = LocalPlayerConditionModule.GetMaxNutritionProtein();
                             float proteinsValue = LocalPlayerConditionModule.GetNutritionProtein();
                             GUILayout.HorizontalSlider(proteinsValue, proteinsMinValue, proteinsMaxValue);
                         }
 
-                        GUI.backgroundColor = IconColors.GetColor(IconColors.Icon.Fat);
-                        using (var fatScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                        using (var proteinImageScope = new GUILayout.HorizontalScope(GUI.skin.box))
                         {
-                            float fillAmount2 = LocalPlayer.GetNutritionFat() / LocalPlayer.GetMaxNutritionFat();
-                            float fatMinValue = 0f;
-                            float fatMaxValue = LocalPlayerConditionModule.GetMaxNutritionFat();
-                            float fatValue = LocalPlayerConditionModule.GetNutritionFat();
-                            GUILayout.HorizontalSlider(fatValue, fatMinValue, fatMaxValue);
-                        }
-
-                        GUI.backgroundColor = IconColors.GetColor(IconColors.Icon.Carbo);
-                        using (var carboScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                        {
-                            float fillAmount3 = LocalPlayer.GetNutritionFat() / LocalPlayer.GetMaxNutritionFat();
-                            float carboMinValue = 0f;
-                            float carboMaxValue = LocalPlayerConditionModule.GetMaxNutritionCarbo();
-                            float carboValue = LocalPlayerConditionModule.GetNutritionCarbo();
-                            GUILayout.HorizontalSlider(carboValue, carboMinValue, carboMaxValue);
-                        }
-
-                        GUI.backgroundColor = IconColors.GetColor(IconColors.Icon.Hydration);
-                        using (var hydrationScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                        {
-                            float fillAmount4 = LocalPlayer.GetHydration() / LocalPlayer.GetMaxHydration();
-                            float hydrationMinValue = 0f;
-                            float hydrationMaxValue = LocalPlayerConditionModule.GetMaxHydration();
-                            float hydrationValue = LocalPlayerConditionModule.GetHydration();
-                            GUILayout.HorizontalSlider(hydrationValue, hydrationMinValue, hydrationMaxValue);
+                            float fillAmount = LocalPlayer.GetNutritionProtein() / LocalPlayer.GetMaxNutritionProtein();
+                            LocalProteins.fillAmount = fillAmount;
+                            LocalProteins.color = GUI.color;
+                            GUILayout.Box(LocalProteins.mainTexture);
+                            GUILayout.Box(LocalProteinsBG.mainTexture);
                         }
                     }
                 }
@@ -293,6 +348,8 @@ namespace ModAudio
                         GUI.color = Color.white;
                     }
                 }
+                GUI.color = defaultC;
+                GUI.backgroundColor = defaultCBG;
             }
             catch (Exception exc)
             {
