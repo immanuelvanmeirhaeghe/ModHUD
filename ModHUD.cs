@@ -23,8 +23,8 @@ namespace ModAudio
         private static readonly float ModScreenMaxWidth = 300f;
         private static readonly float ModScreenMinHeight = 300f;
         private static readonly float ModScreenMaxHeight = 300f;
-        private static float ModScreenStartPositionX { get; set; } = 100f;
-        private static float ModScreenStartPositionY { get; set; } = Screen.height - ModScreenTotalHeight;
+        private static float ModScreenStartPositionX { get; set; } = 50f;
+        private static float ModScreenStartPositionY { get; set; } = Screen.height - ModScreenTotalHeight- 50f;
         private static bool IsMinimized { get; set; } = false;
         private bool ShowUI = false;
         public static Rect ModHUDScreen = new Rect(ModScreenStartPositionX, ModScreenStartPositionY, ModScreenTotalWidth, ModScreenTotalHeight);
@@ -392,12 +392,12 @@ namespace ModAudio
                             }
                             Quaternion rotation = Quaternion.Euler(new Vector3(0f, 0f, angle));
                             string direction = string.Empty;
-                            if (rotation.z == 0.0f && rotation.w == 1.0f)
+                            if (rotation.z == 0.1f && rotation.w == 1.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "N";
                             }
-                            if (rotation.z >= 0.1f && rotation.z < 0.7f && rotation.w >= -0.9f)
+                            if (rotation.z > 0.1f && rotation.z < 0.7f && rotation.w >= -0.9f && rotation.w < -0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NW";
@@ -407,7 +407,7 @@ namespace ModAudio
                                 GUI.color = Color.blue;
                                 direction = "W";
                             }
-                            if (rotation.z >= 0.8f && rotation.w >= -0.8f)
+                            if (rotation.z > 0.7f && rotation.z < 1.0f  && rotation.w > -0.7f && rotation.w < 0.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SW";
@@ -417,7 +417,7 @@ namespace ModAudio
                                 GUI.color = Color.red;
                                 direction = "S";
                             }
-                            if (rotation.z >= -0.9f && rotation.w >= 0.1f)
+                            if (rotation.z >= -0.9f && rotation.z < -0.7f && rotation.w > 0.0f && rotation.w < 0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SE";
@@ -427,12 +427,13 @@ namespace ModAudio
                                 GUI.color = defaultC;
                                 direction = "E";
                             }
-                            if (rotation.z >= -0.8f && rotation.w >= 0.8f)
+                            if (rotation.z > -0.7f && rotation.z < 0.1f && rotation.w >= 0.8f && rotation.w < 1.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NE";
                             }
                             GUILayout.Label($"Direction: {direction}", GUI.skin.label);
+                            GUILayout.Label($"Rotation: {rotation}", GUI.skin.label);
                         }
 
                         using (var positionScope = new GUILayout.HorizontalScope(GUI.skin.label))
