@@ -16,13 +16,13 @@ namespace ModAudio
 
         private static readonly string ModName = nameof(ModHUD);
         private static readonly float ModScreenTotalWidth = Screen.width;
-        private static readonly float ModScreenTotalHeight = 150f;
+        private static readonly float ModScreenTotalHeight = 200f;
         private static readonly float ModScreenMinWidth = Screen.width;
         private static readonly float ModScreenMaxWidth = Screen.width;
-        private static readonly float ModScreenMinHeight = 50f;
+        private static readonly float ModScreenMinHeight = 200f;
         private static readonly float ModScreenMaxHeight = 200f;
-        private static float ModScreenStartPositionX { get; set; } = (Screen.width - ModScreenMaxWidth);
-        private static float ModScreenStartPositionY { get; set; } = (Screen.height - ModScreenMaxHeight);
+        private static float ModScreenStartPositionX { get; set; } = 0f;
+        private static float ModScreenStartPositionY { get; set; } = 0f;
         private static bool IsMinimized { get; set; } = false;
         private bool ShowUI = false;
         public static Rect ModHUDScreen = new Rect(ModScreenStartPositionX, ModScreenStartPositionY, ModScreenTotalWidth, ModScreenTotalHeight);
@@ -30,13 +30,12 @@ namespace ModAudio
         private static Player LocalPlayer;
         private static HUDManager LocalHUDManager;
         private static Watch LocalWatch;
+        private static PlayerConditionModule LocalPlayerConditionModule;
 
         // Based on Watch
         public GameObject LocalHUDCanvas = new GameObject();
         private Dictionary<int, WatchData> LocalHUDCanvasDatas = new Dictionary<int, WatchData>();
-        private static float MAX_BEATS_PER_SEC = 240f;
-        private static float MIN_BEATS_PER_SEC = 60f;
-        private int m_FakeDayOffset;
+        public static float LocalProteinsValue;
 
         public ModHUD()
         {
@@ -58,7 +57,6 @@ namespace ModAudio
         public void Start()
         {
             ModManager.ModManager.onPermissionValueChanged += ModManager_onPermissionValueChanged;
-            InitData();
         }
 
         private void HandleException(Exception exc, string methodName)
@@ -129,7 +127,7 @@ namespace ModAudio
             {
                 if (!ShowUI)
                 {
-                    UpdateData();
+                    InitData();
                 }
                 ToggleShowUI();
             }
@@ -155,19 +153,12 @@ namespace ModAudio
             LocalHUDManager = HUDManager.Get();
             LocalPlayer = Player.Get();
             LocalWatch = Watch.Get();
-
+            LocalPlayerConditionModule = PlayerConditionModule.Get();
             InitLocalHUDCanvas();
-            InitMacronutrientsData();
-            InitSanityData();
-            InitTimeData();
-            InitCompassData();
-            SetAllActive();
         }
 
         private void InitLocalHUDCanvas()
         {
-            var LocalHUDCanvasComponent = new Canvas();
-            LocalHUDCanvasComponent.renderMode = RenderMode.ScreenSpaceOverlay;
             LocalHUDCanvas = new GameObject(nameof(LocalHUDCanvas));
         }
 
@@ -237,7 +228,7 @@ namespace ModAudio
 
             using (var modContentScope = new GUILayout.VerticalScope(GUI.skin.box))
             {
-                CompassBox();
+               // CompassBox();
                 MacronutrientsBox();
             }
             GUI.DragWindow(new Rect(0f, 0f, 10000f, 10000f));
@@ -247,15 +238,70 @@ namespace ModAudio
         {
             try
             {
+                Color defaultBG = GUI.backgroundColor;
                 if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
                 {
                     using (var macroNutrientsScope = new GUILayout.VerticalScope(GUI.skin.box))
                     {
-                        WatchMacronutrientsData nutrientsData = (WatchMacronutrientsData)LocalHUDCanvasDatas[2];
-                        GUILayout.Label(nutrientsData.m_Fat.mainTexture, GUI.skin.label);
-                        GUILayout.Label(nutrientsData.m_Carbo.mainTexture, GUI.skin.label);
-                        GUILayout.Label(nutrientsData.m_Hydration.mainTexture, GUI.skin.label);
-                        GUILayout.Label(nutrientsData.m_Proteins.mainTexture, GUI.skin.label);
+                        GUI.backgroundColor = IconColors.GetColor(IconColors.Icon.Proteins);
+                        using (var proteinScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                        {
+                            Image proteinsImage = (Image)LocalWatch.m_Canvas.transform.Find("Proteins").GetComponent<Image>();
+                            Image proteinsBGImage = (Image)LocalWatch.m_Canvas.transform.Find("ProteinsBG").GetComponent<Image>();
+                            float fillAmount = LocalPlayer.GetNutritionProtein() / LocalPlayer.GetMaxNutritionProtein();
+                            proteinsImage.fillAmount = fillAmount;
+                            float proteinsMinValue = 0f;
+                            float proteinsMaxValue = LocalPlayerConditionModule.GetMaxNutritionProtein();
+                            float proteinsValue = LocalPlayerConditionModule.GetNutritionProtein();
+                            GUILayout.HorizontalSlider(proteinsValue, proteinsMinValue, proteinsMaxValue);
+                            GUILayout.Box(proteinsImage.mainTexture);
+                            GUILayout.Box(proteinsBGImage.mainTexture);
+                        }
+
+                        GUI.backgroundColor = IconColors.GetColor(IconColors.Icon.Fat);
+                        using (var fatScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                        {
+                            Image fatImage = (Image)LocalWatch.m_Canvas.transform.Find("Fat").GetComponent<Image>();
+                            Image fatBGImage = (Image)LocalWatch.m_Canvas.transform.Find("FatBG").GetComponent<Image>();
+                            float fillAmount2 = LocalPlayer.GetNutritionFat() / LocalPlayer.GetMaxNutritionFat();
+                            fatImage.fillAmount = fillAmount2;
+                            float fatMinValue = 0f;
+                            float fatMaxValue = LocalPlayerConditionModule.GetMaxNutritionFat();
+                            float fatValue = LocalPlayerConditionModule.GetNutritionFat();
+                            GUILayout.HorizontalSlider(fatValue, fatMinValue, fatMaxValue);
+                            GUILayout.Box(fatImage.mainTexture);
+                            GUILayout.Box(fatBGImage.mainTexture);
+                        }
+
+                        GUI.backgroundColor = IconColors.GetColor(IconColors.Icon.Carbo);
+                        using (var carboScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                        {
+                            Image carboImage = (Image)LocalWatch.m_Canvas.transform.Find("Carbo").GetComponent<Image>();
+                            Image carboBGImage = (Image)LocalWatch.m_Canvas.transform.Find("CarboBG").GetComponent<Image>();
+                            float fillAmount3 = LocalPlayer.GetNutritionFat() / LocalPlayer.GetMaxNutritionFat();
+                            carboImage.fillAmount = fillAmount3;
+                            float carboMinValue = 0f;
+                            float carboMaxValue = LocalPlayerConditionModule.GetMaxNutritionCarbo();
+                            float carboValue = LocalPlayerConditionModule.GetNutritionCarbo();
+                            GUILayout.HorizontalSlider(carboValue, carboMinValue, carboMaxValue);
+                            GUILayout.Box(carboImage.mainTexture);
+                            GUILayout.Box(carboBGImage.mainTexture);
+                        }
+
+                        GUI.backgroundColor = IconColors.GetColor(IconColors.Icon.Hydration);
+                        using (var hydrationScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                        {
+                            Image hydrationImage = (Image)LocalWatch.m_Canvas.transform.Find("Hydration").GetComponent<Image>();
+                            Image hydrationBGImage = (Image)LocalWatch.m_Canvas.transform.Find("HydrationBG").GetComponent<Image>();
+                            float fillAmount4 = LocalPlayer.GetHydration() / LocalPlayer.GetMaxHydration();
+                            hydrationImage.fillAmount = fillAmount4;
+                            float hydrationMinValue = 0f;
+                            float hydrationMaxValue = LocalPlayerConditionModule.GetMaxHydration();
+                            float hydrationValue = LocalPlayerConditionModule.GetHydration();
+                            GUILayout.HorizontalSlider(hydrationValue, hydrationMinValue, hydrationMaxValue);
+                            GUILayout.Box(((Image)LocalWatch.m_Canvas.transform.Find("Hydration").GetComponent<Image>()).mainTexture);
+                            GUILayout.Box(((Image)LocalWatch.m_Canvas.transform.Find("HydrationBG").GetComponent<Image>()).mainTexture);
+                        }
                     }
                 }
                 else
@@ -282,9 +328,11 @@ namespace ModAudio
                 {
                     using (var compassScope = new GUILayout.VerticalScope(GUI.skin.box))
                     {
-                        WatchCompassData compassData = (WatchCompassData)LocalHUDCanvasDatas[3];
-                        GUILayout.Label($"South: { compassData.m_GPSCoordinates.text}", GUI.skin.label);
-                        GUILayout.Label($"West: { compassData.m_GPSCoordinatesW.text}", GUI.skin.label);
+                        LocalPlayer.GetGPSCoordinates(out int gps_lat, out int gps_long);
+                        string GPSCoordinatesW = gps_lat.ToString();
+                        string GPSCoordinatesS = gps_long.ToString();
+                        GUILayout.Label($"South: { GPSCoordinatesS}", GUI.skin.label);
+                        GUILayout.Label($"West: { GPSCoordinatesW}", GUI.skin.label);
                     }
                 }
                 else
@@ -301,201 +349,6 @@ namespace ModAudio
             {
                 HandleException(exc, nameof(CompassBox));
             }
-        }
-
-        private void SetAllActive()
-        {
-            foreach (int key in LocalHUDCanvasDatas.Keys)
-            {
-                LocalHUDCanvasDatas[key].GetParent().SetActive(true);
-            }
-        }
-
-        private void InitMacronutrientsData()
-        {
-            WatchMacronutrientsData watchMacronutrientsData = new WatchMacronutrientsData
-            {
-                m_Parent = LocalHUDCanvas,
-                m_Fat = LocalWatch.transform.Find("Fat").GetComponent<Image>(),
-                m_Carbo = LocalWatch.transform.Find("Carbo").GetComponent<Image>(),
-                m_Hydration = LocalWatch.transform.Find("Hydration").GetComponent<Image>(),
-                m_Proteins = LocalWatch.transform.Find("Proteins").GetComponent<Image>(),
-                m_FatBG = LocalWatch.transform.Find("FatBG").GetComponent<Image>(),
-                m_CarboBG = LocalWatch.transform.Find("CarboBG").GetComponent<Image>(),
-                m_HydrationBG = LocalWatch.transform.Find("HydrationBG").GetComponent<Image>(),
-                m_ProteinsBG = LocalWatch.transform.Find("ProteinsBG").GetComponent<Image>()
-            };
-            watchMacronutrientsData.m_Fat.color = IconColors.GetColor(IconColors.Icon.Fat);
-            watchMacronutrientsData.m_Carbo.color = IconColors.GetColor(IconColors.Icon.Carbo);
-            watchMacronutrientsData.m_Proteins.color = IconColors.GetColor(IconColors.Icon.Proteins);
-            watchMacronutrientsData.m_Hydration.color = IconColors.GetColor(IconColors.Icon.Hydration);
-            watchMacronutrientsData.m_Parent.SetActive(value: false);
-            LocalHUDCanvasDatas.Add(2, watchMacronutrientsData);
-        }
-
-        private void InitSanityData()
-        {
-            WatchSanityData watchSanityData = new WatchSanityData
-            {
-                m_Parent = LocalHUDCanvas,
-                m_Sanity = LocalWatch.transform.Find("SanityHRM").GetComponent<SWP_HeartRateMonitor>(),
-                m_SanityText = LocalWatch.GetComponent<Text>()
-            };
-            watchSanityData.m_Parent.SetActive(value: false);
-            LocalHUDCanvasDatas.Add(1, watchSanityData);
-        }
-
-        private void InitTimeData()
-        {
-            WatchTimeData watchTimeData = new WatchTimeData
-            {
-                m_Parent = LocalHUDCanvas,
-                m_TimeHourDec = LocalWatch.transform.Find("HourDec").GetComponent<Text>(),
-                m_TimeHourUnit = LocalWatch.transform.Find("HourUnit").GetComponent<Text>(),
-                m_TimeMinuteDec = LocalWatch.transform.Find("MinuteDec").GetComponent<Text>(),
-                m_TimeMinuteUnit = LocalWatch.transform.Find("MinuteUnit").GetComponent<Text>(),
-                m_DayDec = LocalWatch.transform.Find("DayDec").GetComponent<Text>(),
-                m_DayUnit = LocalWatch.transform.Find("DayUnit").GetComponent<Text>(),
-                m_DayName = LocalWatch.transform.Find("DayName").GetComponent<Text>(),
-                m_MonthName = LocalWatch.transform.Find("MonthName").GetComponent<Text>()
-            };
-            watchTimeData.m_Parent.SetActive(value: false);
-            LocalHUDCanvasDatas.Add(0, watchTimeData);
-        }
-
-        private void InitCompassData()
-        {
-            WatchCompassData watchCompassData = new WatchCompassData
-            {
-                m_Parent = LocalHUDCanvas,
-                m_Compass = LocalWatch.transform.Find("CompassIcon").gameObject,
-                m_GPSCoordinates = LocalWatch.transform.Find("S_Coordinates").GetComponent<Text>(),
-                m_GPSCoordinatesW = LocalWatch.transform.Find("W_Coordinates").GetComponent<Text>()
-            };
-            watchCompassData.m_Parent.SetActive(value: false);
-            LocalHUDCanvasDatas.Add(3, watchCompassData);
-        }
-
-        private void UpdateData()
-        {
-            UpdateSanity();
-            UpdateTime();
-            UpdateMacronutrients();
-            UpdateCompass();
-        }
-
-        private void UpdateSanity()
-        {
-            WatchSanityData obj2 = (WatchSanityData)LocalHUDCanvasDatas[1];
-            obj2.m_Sanity.BeatsPerMinute = (int)CJTools.Math.GetProportionalClamp(MIN_BEATS_PER_SEC, MAX_BEATS_PER_SEC, PlayerSanityModule.Get().m_Sanity, 1f, 0f);
-            obj2.m_SanityText.text = PlayerSanityModule.Get().m_Sanity.ToString();
-        }
-
-        public void ClearFakeDate()
-        {
-            m_FakeDayOffset = 0;
-        }
-
-        public void SetFakeDate(int day, int month)
-        {
-            DateTime dateTime = MainLevel.Instance.m_TODSky.Cycle.DateTime;
-            dateTime = new DateTime(dateTime.Year, dateTime.Month, dateTime.Day);
-            int year = ((month > dateTime.Month && day > dateTime.Day) ? (dateTime.Year - 1) : dateTime.Year);
-            DateTime d = new DateTime(year, month, day);
-            m_FakeDayOffset = (d - dateTime).Days;
-        }
-
-        private void UpdateTime()
-        {
-            WatchTimeData watchTimeData = (WatchTimeData)LocalHUDCanvasDatas[0];
-            DateTime dateTime = MainLevel.Instance.m_TODSky.Cycle.DateTime.AddDays(m_FakeDayOffset);
-            int hour = dateTime.Hour;
-            int num2 = hour % 10;
-            int num3 = (hour - num2) / 10;
-            int minute = dateTime.Minute;
-            int num4 = minute % 10;
-            int num5 = (minute - num4) / 10;
-            watchTimeData.m_TimeHourDec.text = num3.ToString();
-            watchTimeData.m_TimeHourUnit.text = num2.ToString();
-            watchTimeData.m_TimeMinuteDec.text = num5.ToString();
-            watchTimeData.m_TimeMinuteUnit.text = num4.ToString();
-            Localization localization = GreenHellGame.Instance.GetLocalization();
-            string key = "Watch_" + EnumUtils<DayOfWeek>.GetName(dateTime.DayOfWeek);
-            watchTimeData.m_DayName.text = localization.Get(key);
-            switch (dateTime.Month)
-            {
-                case 1:
-                    key = "Watch_January";
-                    break;
-                case 2:
-                    key = "Watch_February";
-                    break;
-                case 3:
-                    key = "Watch_March";
-                    break;
-                case 4:
-                    key = "Watch_April";
-                    break;
-                case 5:
-                    key = "Watch_May";
-                    break;
-                case 6:
-                    key = "Watch_June";
-                    break;
-                case 7:
-                    key = "Watch_July";
-                    break;
-                case 8:
-                    key = "Watch_August";
-                    break;
-                case 9:
-                    key = "Watch_September";
-                    break;
-                case 10:
-                    key = "Watch_October";
-                    break;
-                case 11:
-                    key = "Watch_November";
-                    break;
-                case 12:
-                    key = "Watch_December";
-                    break;
-            }
-            watchTimeData.m_MonthName.text = localization.Get(key);
-            int day = dateTime.Day;
-            int num6 = day % 10;
-            int num7 = (day - num6) / 10;
-            watchTimeData.m_DayDec.text = num7.ToString();
-            watchTimeData.m_DayUnit.text = num6.ToString();
-        }
-
-        private void UpdateMacronutrients()
-        {
-            WatchMacronutrientsData obj3 = (WatchMacronutrientsData)LocalHUDCanvasDatas[2];
-            float fillAmount =LocalPlayer.GetNutritionFat() /LocalPlayer.GetMaxNutritionFat();
-            obj3.m_Fat.fillAmount = fillAmount;
-            float fillAmount2 =LocalPlayer.GetNutritionCarbo() /LocalPlayer.GetMaxNutritionCarbo();
-            obj3.m_Carbo.fillAmount = fillAmount2;
-            float fillAmount3 =LocalPlayer.GetNutritionProtein() /LocalPlayer.GetMaxNutritionProtein();
-            obj3.m_Proteins.fillAmount = fillAmount3;
-            float fillAmount4 =LocalPlayer.GetHydration() /LocalPlayer.GetMaxHydration();
-            obj3.m_Hydration.fillAmount = fillAmount4;
-        }
-
-        private void UpdateCompass()
-        {
-            WatchCompassData obj = (WatchCompassData)LocalHUDCanvasDatas[3];
-            Vector3 forward = LocalPlayer.gameObject.transform.forward;
-            float num = Vector3.Angle(Vector3.forward, forward);
-            if (forward.x < 0f)
-            {
-                num = 360f - num;
-            }
-            Quaternion rotation = Quaternion.Euler(new Vector3(0f, 0f, num));
-            obj.m_Compass.transform.rotation = rotation;
-            LocalPlayer.GetGPSCoordinates(out int gps_lat, out int gps_long);
-            obj.m_GPSCoordinatesW.text = gps_lat.ToString();
-            obj.m_GPSCoordinates.text = gps_long.ToString();
         }
     }
 }
