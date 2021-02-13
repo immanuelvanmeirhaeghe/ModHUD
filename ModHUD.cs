@@ -151,6 +151,12 @@ namespace ModAudio
                 DumpTextures();
                 ShowHUDBigInfo(HUDBigInfoMessage($"Dumped all texture info to {ReportPath}", MessageType.Info));
             }
+
+            if (Input.GetKey(KeyCode.RightControl) && Input.GetKeyDown(KeyCode.Y))
+            {
+                DumpTextures();
+                ShowHUDBigInfo(HUDBigInfoMessage($"Dumped all item icon info to {Application.dataPath.Replace("GH_Data", "Logs")}/{nameof(ModHUD)}.log", MessageType.Info));
+            }
         }
 
         private void ToggleShowUI()
@@ -287,8 +293,10 @@ namespace ModAudio
                             float fatMinValue = 0f;
                             float fatMaxValue = LocalPlayerConditionModule.GetMaxNutritionFat();
                             float fatValue = LocalPlayerConditionModule.GetNutritionFat();
-                            LocalItemsManager.m_ItemIconsSprites.TryGetValue("Fat", out Sprite localIcon);
-                            GUILayout.Box(localIcon.texture, GUI.skin.label);
+                            if(LocalItemsManager.m_ItemIconsSprites.TryGetValue("Fat", out Sprite localIcon))
+                            {
+                                GUILayout.Box(localIcon.texture, GUI.skin.label);
+                            }
                             GUILayout.Label("fats");
                             GUILayout.HorizontalSlider(fatValue, fatMinValue, fatMaxValue, GUILayout.Width(175f));
                         }
@@ -300,8 +308,10 @@ namespace ModAudio
                             float carboMinValue = 0f;
                             float carboMaxValue = LocalPlayerConditionModule.GetMaxNutritionCarbo();
                             float carboValue = LocalPlayerConditionModule.GetNutritionCarbo();
-                            LocalItemsManager.m_ItemIconsSprites.TryGetValue("Carbo", out Sprite localIcon);
-                            GUILayout.Box(localIcon.texture, GUI.skin.label);
+                            if(LocalItemsManager.m_ItemIconsSprites.TryGetValue("Carbo", out Sprite localIcon))
+                            {
+                                GUILayout.Box(localIcon.texture, GUI.skin.label);
+                            }
                             GUILayout.Label("carbs");
                             GUILayout.HorizontalSlider(carboValue, carboMinValue, carboMaxValue, GUILayout.Width(175f));
                         }
@@ -313,8 +323,10 @@ namespace ModAudio
                             float hydrationMinValue = 0f;
                             float hydrationMaxValue = LocalPlayerConditionModule.GetMaxHydration();
                             float hydrationValue = LocalPlayerConditionModule.GetHydration();
-                            LocalItemsManager.m_ItemIconsSprites.TryGetValue("Hydration", out Sprite localIcon);
-                            GUILayout.Box(localIcon.texture, GUI.skin.label);
+                            if(LocalItemsManager.m_ItemIconsSprites.TryGetValue("Hydration", out Sprite localIcon))
+                            {
+                                GUILayout.Box(localIcon.texture, GUI.skin.label);
+                            }
                             GUILayout.Label("hydration");
                             GUILayout.HorizontalSlider(hydrationValue, hydrationMinValue, hydrationMaxValue, GUILayout.Width(175f));
                         }
@@ -326,43 +338,13 @@ namespace ModAudio
                             float proteinsMinValue = 0f;
                             float proteinsMaxValue = LocalPlayerConditionModule.GetMaxNutritionProtein();
                             float proteinsValue = LocalPlayerConditionModule.GetNutritionProtein();
-                            LocalItemsManager.m_ItemIconsSprites.TryGetValue("Proteins", out Sprite localIcon);
-                            GUILayout.Box(localIcon.texture, GUI.skin.label);
+                            if(LocalItemsManager.m_ItemIconsSprites.TryGetValue("Proteins", out Sprite localIcon))
+                            {
+                                GUILayout.Box(localIcon.texture, GUI.skin.label);
+                            }
                             GUILayout.Label("proteins");
                             GUILayout.HorizontalSlider(proteinsValue, proteinsMinValue, proteinsMaxValue, GUILayout.Width(175f));
                         }
-
-                        //using (var fatImageScope = new GUILayout.HorizontalScope(GUI.skin.label))
-                        //{
-                        //    float fillAmount2 = LocalPlayer.GetNutritionFat() / LocalPlayer.GetMaxNutritionFat();
-                        //    LocalFat.fillAmount = fillAmount2;
-                        //    GUILayout.Box(LocalFat.mainTexture);
-                        //    GUILayout.Box(LocalFatBG.mainTexture);
-                        //}
-
-                        //using (var carbsImageScope = new GUILayout.HorizontalScope(GUI.skin.label))
-                        //{
-                        //    float fillAmount3 = LocalPlayer.GetNutritionCarbo() / LocalPlayer.GetMaxNutritionCarbo();
-                        //    LocalCarbs.fillAmount = fillAmount3;
-                        //    GUILayout.Box(LocalCarbs.mainTexture);
-                        //    GUILayout.Box(LocalCarbsBG.mainTexture);
-                        //}
-
-                        //using (var hydrationImageScope = new GUILayout.HorizontalScope(GUI.skin.label))
-                        //{
-                        //    float fillAmount4 = LocalPlayer.GetHydration() / LocalPlayer.GetMaxHydration();
-                        //    LocalHydration.fillAmount = fillAmount4;
-                        //    GUILayout.Box(LocalHydration.mainTexture);
-                        //    GUILayout.Box(LocalHydrationBG.mainTexture);
-                        //}
-
-                        //using (var proteinImageScope = new GUILayout.HorizontalScope(GUI.skin.label))
-                        //{
-                        //    float fillAmount = LocalPlayer.GetNutritionProtein() / LocalPlayer.GetMaxNutritionProtein();
-                        //    LocalProteins.fillAmount = fillAmount;
-                        //    GUILayout.Box(LocalProteins.mainTexture);
-                        //    GUILayout.Box(LocalProteinsBG.mainTexture);
-                        //}
                     }
                 }
                 else
@@ -390,7 +372,7 @@ namespace ModAudio
                 Color defaultC = GUI.color;
                 GUIStyle labelStyle = new GUIStyle(GUI.skin.label)
                 {
-                    fontSize = 24
+                    fontSize = 18
                 };
 
                 if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
@@ -450,7 +432,6 @@ namespace ModAudio
                             GUILayout.Label($"{rotation.z}", GUI.skin.label);
                             GUILayout.Label($"{direction}", labelStyle);
                             GUILayout.Label($"{rotation.w}", GUI.skin.label);
-                            // GUILayout.Label($"Rotation: {rotation}", GUI.skin.label);
                         }
 
                         using (var positionScope = new GUILayout.VerticalScope(GUI.skin.label))
@@ -546,5 +527,14 @@ namespace ModAudio
             }
         }
 
+        private void DumpIconsInfo()
+        {
+            StringBuilder iconsInfo = new StringBuilder($"\nDumped Items Icon Info\n");
+            foreach (var itemIconSprite in LocalItemsManager.m_ItemIconsSprites)
+            {
+                iconsInfo.AppendLine($"Key\t{itemIconSprite.Key}");
+            }
+            ModAPI.Log.Write(iconsInfo.ToString());
+        }
     }
 }
