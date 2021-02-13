@@ -30,6 +30,7 @@ namespace ModAudio
         public static Rect ModHUDScreen = new Rect(ModScreenStartPositionX, ModScreenStartPositionY, ModScreenTotalWidth, ModScreenTotalHeight);
 
         private static Player LocalPlayer;
+        private static ItemsManager LocalItemsManager;
         private static HUDManager LocalHUDManager;
         private static Watch LocalWatch;
         private static PlayerConditionModule LocalPlayerConditionModule;
@@ -173,6 +174,7 @@ namespace ModAudio
             LocalPlayer = Player.Get();
             LocalWatch = Watch.Get();
             LocalPlayerConditionModule = PlayerConditionModule.Get();
+            LocalItemsManager = ItemsManager.Get();
             // InitLocalHUDCanvas();
             InitLocalCompass();
         }
@@ -285,6 +287,8 @@ namespace ModAudio
                             float fatMinValue = 0f;
                             float fatMaxValue = LocalPlayerConditionModule.GetMaxNutritionFat();
                             float fatValue = LocalPlayerConditionModule.GetNutritionFat();
+                            LocalItemsManager.m_ItemIconsSprites.TryGetValue("Fat", out Sprite localIcon);
+                            GUILayout.Box(localIcon.texture, GUI.skin.label);
                             GUILayout.Label("fats");
                             GUILayout.HorizontalSlider(fatValue, fatMinValue, fatMaxValue, GUILayout.Width(175f));
                         }
@@ -296,6 +300,8 @@ namespace ModAudio
                             float carboMinValue = 0f;
                             float carboMaxValue = LocalPlayerConditionModule.GetMaxNutritionCarbo();
                             float carboValue = LocalPlayerConditionModule.GetNutritionCarbo();
+                            LocalItemsManager.m_ItemIconsSprites.TryGetValue("Carbo", out Sprite localIcon);
+                            GUILayout.Box(localIcon.texture, GUI.skin.label);
                             GUILayout.Label("carbs");
                             GUILayout.HorizontalSlider(carboValue, carboMinValue, carboMaxValue, GUILayout.Width(175f));
                         }
@@ -307,6 +313,8 @@ namespace ModAudio
                             float hydrationMinValue = 0f;
                             float hydrationMaxValue = LocalPlayerConditionModule.GetMaxHydration();
                             float hydrationValue = LocalPlayerConditionModule.GetHydration();
+                            LocalItemsManager.m_ItemIconsSprites.TryGetValue("Hydration", out Sprite localIcon);
+                            GUILayout.Box(localIcon.texture, GUI.skin.label);
                             GUILayout.Label("hydration");
                             GUILayout.HorizontalSlider(hydrationValue, hydrationMinValue, hydrationMaxValue, GUILayout.Width(175f));
                         }
@@ -318,6 +326,8 @@ namespace ModAudio
                             float proteinsMinValue = 0f;
                             float proteinsMaxValue = LocalPlayerConditionModule.GetMaxNutritionProtein();
                             float proteinsValue = LocalPlayerConditionModule.GetNutritionProtein();
+                            LocalItemsManager.m_ItemIconsSprites.TryGetValue("Proteins", out Sprite localIcon);
+                            GUILayout.Box(localIcon.texture, GUI.skin.label);
                             GUILayout.Label("proteins");
                             GUILayout.HorizontalSlider(proteinsValue, proteinsMinValue, proteinsMaxValue, GUILayout.Width(175f));
                         }
@@ -378,6 +388,11 @@ namespace ModAudio
             try
             {
                 Color defaultC = GUI.color;
+                GUIStyle labelStyle = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 24
+                };
+
                 if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
                 {
                     using (var compassScope = new GUILayout.VerticalScope(GUI.skin.label))
@@ -392,19 +407,19 @@ namespace ModAudio
                             }
                             Quaternion rotation = Quaternion.Euler(new Vector3(0f, 0f, angle));
                             string direction = string.Empty;
-                            if (rotation.z == 0.1f && rotation.w == 1.0f)
+                            if (rotation.z == 0.0f && Math.Abs(rotation.w) == 1.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "N";
                             }
-                            if (rotation.z > 0.1f && rotation.z < 0.7f && rotation.w >= -0.9f && rotation.w < -0.7f)
+                            if (rotation.z > 0.1f && rotation.z <= 0.4f && rotation.w >= -0.9f && rotation.w < -0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NW";
                             }
                             if (rotation.z == 0.7f && rotation.w == -0.7f)
                             {
-                                GUI.color = Color.blue;
+                                GUI.color = IconColors.GetColor(IconColors.Icon.Hydration);
                                 direction = "W";
                             }
                             if (rotation.z > 0.7f && rotation.z < 1.0f  && rotation.w > -0.7f && rotation.w < 0.0f)
@@ -412,39 +427,51 @@ namespace ModAudio
                                 GUI.color = defaultC;
                                 direction = "SW";
                             }
-                            if (rotation.z == 1.0f && rotation.w == 0.0f)
+                            if (Math.Abs(rotation.z) == 1.0f && rotation.w == 0.0f)
                             {
-                                GUI.color = Color.red;
+                                GUI.color = IconColors.GetColor(IconColors.Icon.Proteins);
                                 direction = "S";
                             }
-                            if (rotation.z >= -0.9f && rotation.z < -0.7f && rotation.w > 0.0f && rotation.w < 0.7f)
+                            if (rotation.z > 0.7f && rotation.w > 0.0f && rotation.w < 0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SE";
                             }
-                            if (rotation.z == -0.7f && rotation.w == 0.7f)
+                            if (rotation.z == 0.7f && rotation.w == 0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "E";
                             }
-                            if (rotation.z > -0.7f && rotation.z < 0.1f && rotation.w >= 0.8f && rotation.w < 1.0f)
+                            if (rotation.z > 0.3f && rotation.w >= 0.8f && rotation.w < 1.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NE";
                             }
-                            GUILayout.Label($"Direction: {direction}", GUI.skin.label);
-                            GUILayout.Label($"Rotation: {rotation}", GUI.skin.label);
+                            GUILayout.Label($"{rotation.z}", GUI.skin.label);
+                            GUILayout.Label($"{direction}", labelStyle);
+                            GUILayout.Label($"{rotation.w}", GUI.skin.label);
+                            // GUILayout.Label($"Rotation: {rotation}", GUI.skin.label);
                         }
 
-                        using (var positionScope = new GUILayout.HorizontalScope(GUI.skin.label))
+                        using (var positionScope = new GUILayout.VerticalScope(GUI.skin.label))
                         {
                             LocalPlayer.GetGPSCoordinates(out int gps_lat, out int gps_long);
                             string GPSCoordinatesW = gps_lat.ToString();
                             string GPSCoordinatesS = gps_long.ToString();
-                            GUI.color = Color.red;
-                            GUILayout.Label($"South: { GPSCoordinatesS}", GUI.skin.label);
-                            GUI.color = Color.blue;
-                            GUILayout.Label($"West: { GPSCoordinatesW}", GUI.skin.label);
+                            using (var coordinatesWScope = new GUILayout.HorizontalScope(GUI.skin.label))
+                            {
+                                GUI.color = defaultC;
+                                GUILayout.Label($"{ GPSCoordinatesW}", labelStyle);
+                                GUI.color = IconColors.GetColor(IconColors.Icon.Hydration);
+                                GUILayout.Label($"\"W", labelStyle);
+                            }
+                            using (var coordinatesSScope = new GUILayout.HorizontalScope(GUI.skin.label))
+                            {
+                                GUI.color = defaultC;
+                                GUILayout.Label($"{ GPSCoordinatesS}", labelStyle);
+                                GUI.color = IconColors.GetColor(IconColors.Icon.Proteins);
+                                GUILayout.Label($"\"S", labelStyle);
+                            }
                         }
                     }
                 }
