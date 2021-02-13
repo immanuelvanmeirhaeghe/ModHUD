@@ -154,7 +154,7 @@ namespace ModAudio
 
             if (Input.GetKey(KeyCode.RightControl) && Input.GetKeyDown(KeyCode.Y))
             {
-                DumpTextures();
+                DumpIconsInfo();
                 ShowHUDBigInfo(HUDBigInfoMessage($"Dumped all item icon info to {Application.dataPath.Replace("GH_Data", "Logs")}/{nameof(ModHUD)}.log", MessageType.Info));
             }
         }
@@ -408,7 +408,7 @@ namespace ModAudio
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Hydration);
                                 direction = "W";
                             }
-                            if (z>= 0.7f && z<= 1.0f  && w >= -0.7f && w <= 0.0f)
+                            if (z>= 0.8f && z<= 1.0f  && w >= -0.7f && w <= 0.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SW";
@@ -433,9 +433,9 @@ namespace ModAudio
                                 GUI.color = defaultC;
                                 direction = "NE";
                             }
-                            GUILayout.Label($"{z}", GUI.skin.label, GUILayout.Width(25f));
-                            GUILayout.Label($"{direction}", labelStyle);
-                            GUILayout.Label($"{w}", GUI.skin.label,GUILayout.Width(25f));
+                           // GUILayout.Label($"{z}", GUI.skin.label, GUILayout.Width(25f));
+                            GUILayout.Label($"{direction}", GUI.skin.label);
+                           // GUILayout.Label($"{w}", GUI.skin.label,GUILayout.Width(25f));
                         }
 
                         using (var positionScope = new GUILayout.VerticalScope(GUI.skin.label))
