@@ -293,7 +293,7 @@ namespace ModAudio
                             float fatMinValue = 0f;
                             float fatMaxValue = LocalPlayerConditionModule.GetMaxNutritionFat();
                             float fatValue = LocalPlayerConditionModule.GetNutritionFat();
-                            if(LocalItemsManager.m_ItemIconsSprites.TryGetValue("Fat", out Sprite localIcon))
+                            if(LocalItemsManager.m_ItemIconsSprites.TryGetValue("Watch_fat_icon", out Sprite localIcon))
                             {
                                 GUILayout.Box(localIcon.texture, GUI.skin.label);
                             }
@@ -308,7 +308,7 @@ namespace ModAudio
                             float carboMinValue = 0f;
                             float carboMaxValue = LocalPlayerConditionModule.GetMaxNutritionCarbo();
                             float carboValue = LocalPlayerConditionModule.GetNutritionCarbo();
-                            if(LocalItemsManager.m_ItemIconsSprites.TryGetValue("Carbo", out Sprite localIcon))
+                            if(LocalItemsManager.m_ItemIconsSprites.TryGetValue("Watch_carbo_icon", out Sprite localIcon))
                             {
                                 GUILayout.Box(localIcon.texture, GUI.skin.label);
                             }
@@ -323,7 +323,7 @@ namespace ModAudio
                             float hydrationMinValue = 0f;
                             float hydrationMaxValue = LocalPlayerConditionModule.GetMaxHydration();
                             float hydrationValue = LocalPlayerConditionModule.GetHydration();
-                            if(LocalItemsManager.m_ItemIconsSprites.TryGetValue("Hydration", out Sprite localIcon))
+                            if(LocalItemsManager.m_ItemIconsSprites.TryGetValue("Watch_water_icon", out Sprite localIcon))
                             {
                                 GUILayout.Box(localIcon.texture, GUI.skin.label);
                             }
@@ -338,7 +338,7 @@ namespace ModAudio
                             float proteinsMinValue = 0f;
                             float proteinsMaxValue = LocalPlayerConditionModule.GetMaxNutritionProtein();
                             float proteinsValue = LocalPlayerConditionModule.GetNutritionProtein();
-                            if(LocalItemsManager.m_ItemIconsSprites.TryGetValue("Proteins", out Sprite localIcon))
+                            if(LocalItemsManager.m_ItemIconsSprites.TryGetValue("Watch_protein_icon", out Sprite localIcon))
                             {
                                 GUILayout.Box(localIcon.texture, GUI.skin.label);
                             }
@@ -398,7 +398,7 @@ namespace ModAudio
                                 GUI.color = defaultC;
                                 direction = "N";
                             }
-                            if (z >= 0.1f && z < 0.7f && w >= -1.0f && w < -0.7f)
+                            if (z >= 0.1f && z <= 0.7f && w >= -1.0f && w < -0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NW";
@@ -408,7 +408,7 @@ namespace ModAudio
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Hydration);
                                 direction = "W";
                             }
-                            if (z> 0.7f && z<= 1.0f  && w >= -0.7f && w < 0.0f)
+                            if (z>= 0.7f && z<= 1.0f  && w >= -0.7f && w <= 0.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SW";
@@ -428,7 +428,7 @@ namespace ModAudio
                                 GUI.color = defaultC;
                                 direction = "E";
                             }
-                            if (z>= 0.1f && z < 0.7f && w >= 0.8f && w <= 1.0f)
+                            if (z>= 0.1f && z <= 0.7f && w >= 0.8f && w <= 1.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NE";
@@ -532,12 +532,19 @@ namespace ModAudio
 
         private void DumpIconsInfo()
         {
-            StringBuilder iconsInfo = new StringBuilder($"\nDumped Items Icon Info\n");
-            foreach (var itemIconSprite in LocalItemsManager.m_ItemIconsSprites)
+            try
             {
-                iconsInfo.AppendLine($"Key\t{itemIconSprite.Key}");
+                StringBuilder iconsInfo = new StringBuilder($"\nDumped Items Icon Info\n");
+                foreach (var itemIconSprite in LocalItemsManager.m_ItemIconsSprites)
+                {
+                    iconsInfo.AppendLine($"Key\t{itemIconSprite.Key}");
+                }
+                ModAPI.Log.Write(iconsInfo.ToString());
             }
-            ModAPI.Log.Write(iconsInfo.ToString());
+            catch (Exception exc)
+            {
+                HandleException(exc, nameof(DumpIconsInfo));
+            }
         }
     }
 }
