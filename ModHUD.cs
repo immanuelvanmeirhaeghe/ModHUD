@@ -23,7 +23,7 @@ namespace ModAudio
         private static readonly float ModScreenMaxWidth = 300f;
         private static readonly float ModScreenMinHeight = 300f;
         private static readonly float ModScreenMaxHeight = 300f;
-        private static float ModScreenStartPositionX { get; set; } = 50f;
+        private static float ModScreenStartPositionX { get; set; } = 0f;
         private static float ModScreenStartPositionY { get; set; } = Screen.height - ModScreenTotalHeight- 75f;
         private static bool IsMinimized { get; set; } = false;
         private bool ShowUI = false;
@@ -393,12 +393,12 @@ namespace ModAudio
                             double z = Math.Round(rotation.z, 1, MidpointRounding.ToEven);
                             double w = Math.Round(rotation.w, 1, MidpointRounding.ToEven);
 
-                            if (z == 0.0f && Math.Abs(w) == 1.0f)
+                            if (z == 0.0f && Math.Abs(Math.Round(w)) == 1.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "N";
                             }
-                            if (z > 0.1f && z <= 0.4f && w >= -0.9f && w < -0.7f)
+                            if (z >= 0.1f && z < 0.7f && w >= -1.0f && w < -0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NW";
@@ -408,7 +408,7 @@ namespace ModAudio
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Hydration);
                                 direction = "W";
                             }
-                            if (z> 0.7f && z< 1.0f  && w > -0.7f && w < 0.0f)
+                            if (z> 0.7f && z<= 1.0f  && w >= -0.7f && w < 0.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SW";
@@ -428,7 +428,7 @@ namespace ModAudio
                                 GUI.color = defaultC;
                                 direction = "E";
                             }
-                            if (z> 0.3f && w >= 0.8f && w < 1.0f)
+                            if (z>= 0.1f && z < 0.7f && w >= 0.8f && w <= 1.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NE";
