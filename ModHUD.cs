@@ -8,7 +8,7 @@ namespace ModAudio
 {
     /// <summary>
     /// ModHUD is a mod for Green Hell that allows a player to adjust some audio effects volume.
-    /// Enable the mod UI by pressing 6.
+    /// Enable the mod UI by pressing 7.
     /// </summary>
     public class ModHUD : MonoBehaviour
     {
@@ -125,7 +125,7 @@ namespace ModAudio
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Alpha6))
+            if (Input.GetKeyDown(KeyCode.Alpha7))
             {
                 if (!ShowUI)
                 {

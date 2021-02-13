@@ -1,10 +1,10 @@
 <Mod ID="ModHUD">
   <Compatible>2.0.4</Compatible>
   <Name>
-    <EN>ModHUD is a mod for Green Hell that adds a player HUD which displays player stats and compass.</EN>
+    <EN>ModHUD</EN>
   </Name>
   <Description>
-    <EN>ModHUD</EN>
+    <EN>ModHUD is a mod for Green Hell that adds a player HUD which displays player stats and compass.</EN>
   </Description>
   <Version>1.0.0.0</Version>
 </Mod>
