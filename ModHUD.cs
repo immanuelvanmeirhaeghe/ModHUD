@@ -17,13 +17,13 @@ namespace ModAudio
         private static ModHUD Instance;
 
         private static readonly string ModName = nameof(ModHUD);
-        private static readonly float ModScreenTotalWidth = 200f;
-        private static readonly float ModScreenTotalHeight = 200f;
-        private static readonly float ModScreenMinWidth = 200f;
-        private static readonly float ModScreenMaxWidth = 200f;
-        private static readonly float ModScreenMinHeight = 200f;
-        private static readonly float ModScreenMaxHeight = 200f;
-        private static float ModScreenStartPositionX { get; set; } = 0f;
+        private static readonly float ModScreenTotalWidth = 300f;
+        private static readonly float ModScreenTotalHeight = 300f;
+        private static readonly float ModScreenMinWidth = 300f;
+        private static readonly float ModScreenMaxWidth = 300f;
+        private static readonly float ModScreenMinHeight = 300f;
+        private static readonly float ModScreenMaxHeight = 300f;
+        private static float ModScreenStartPositionX { get; set; } = 100f;
         private static float ModScreenStartPositionY { get; set; } = Screen.height - ModScreenTotalHeight;
         private static bool IsMinimized { get; set; } = false;
         private bool ShowUI = false;
@@ -382,16 +382,6 @@ namespace ModAudio
                 {
                     using (var compassScope = new GUILayout.VerticalScope(GUI.skin.label))
                     {
-                        using (var positionScope = new GUILayout.HorizontalScope(GUI.skin.label))
-                        {
-                            LocalPlayer.GetGPSCoordinates(out int gps_lat, out int gps_long);
-                            string GPSCoordinatesW = gps_lat.ToString();
-                            string GPSCoordinatesS = gps_long.ToString();
-                            GUI.color = Color.red;
-                            GUILayout.Label($"South: { GPSCoordinatesS}", GUI.skin.label);
-                            GUI.color = Color.white;
-                            GUILayout.Label($"West: { GPSCoordinatesW}", GUI.skin.label);
-                        }
                         using (var directionScope = new GUILayout.HorizontalScope(GUI.skin.label))
                         {
                             Vector3 forward = LocalPlayer.gameObject.transform.forward;
@@ -401,8 +391,59 @@ namespace ModAudio
                                 angle = 360f - angle;
                             }
                             Quaternion rotation = Quaternion.Euler(new Vector3(0f, 0f, angle));
-                            LocalCompass.transform.rotation = rotation;
-                            GUILayout.Label($"Direction: {rotation}");
+                            string direction = string.Empty;
+                            if (rotation.z == 0.0f && rotation.w == 1.0f)
+                            {
+                                GUI.color = defaultC;
+                                direction = "N";
+                            }
+                            if (rotation.z >= 0.1f && rotation.z < 0.7f && rotation.w >= -0.9f)
+                            {
+                                GUI.color = defaultC;
+                                direction = "NW";
+                            }
+                            if (rotation.z == 0.7f && rotation.w == -0.7f)
+                            {
+                                GUI.color = Color.blue;
+                                direction = "W";
+                            }
+                            if (rotation.z >= 0.8f && rotation.w >= -0.8f)
+                            {
+                                GUI.color = defaultC;
+                                direction = "SW";
+                            }
+                            if (rotation.z == 1.0f && rotation.w == 0.0f)
+                            {
+                                GUI.color = Color.red;
+                                direction = "S";
+                            }
+                            if (rotation.z >= -0.9f && rotation.w >= 0.1f)
+                            {
+                                GUI.color = defaultC;
+                                direction = "SE";
+                            }
+                            if (rotation.z == -0.7f && rotation.w == 0.7f)
+                            {
+                                GUI.color = defaultC;
+                                direction = "E";
+                            }
+                            if (rotation.z >= -0.8f && rotation.w >= 0.8f)
+                            {
+                                GUI.color = defaultC;
+                                direction = "NE";
+                            }
+                            GUILayout.Label($"Direction: {direction}", GUI.skin.label);
+                        }
+
+                        using (var positionScope = new GUILayout.HorizontalScope(GUI.skin.label))
+                        {
+                            LocalPlayer.GetGPSCoordinates(out int gps_lat, out int gps_long);
+                            string GPSCoordinatesW = gps_lat.ToString();
+                            string GPSCoordinatesS = gps_long.ToString();
+                            GUI.color = Color.red;
+                            GUILayout.Label($"South: { GPSCoordinatesS}", GUI.skin.label);
+                            GUI.color = Color.blue;
+                            GUILayout.Label($"West: { GPSCoordinatesW}", GUI.skin.label);
                         }
                     }
                 }
