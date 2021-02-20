@@ -362,7 +362,7 @@ namespace ModAudio
                 Color defaultBgC = GUI.backgroundColor;
                 GUIStyle compassLabel = new GUIStyle(GUI.skin.label)
                 {
-                    fontSize = 30,
+                    fontSize = 20,
                     alignment = TextAnchor.MiddleCenter,
                     fontStyle = FontStyle.Bold
                 };
@@ -410,7 +410,7 @@ namespace ModAudio
                                 wDir = "- -";
                             }
 
-                            if (z > 0.0f && z < 0.70f && w >= -1.0f && w < -0.70f)
+                            if (z > 0.0f && z < 0.80f && w >= -1.0f && w < -0.70f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NW";
@@ -441,7 +441,7 @@ namespace ModAudio
                                 wDir = "- -";
                             }
 
-                            if (z > 0.70f && z <= 1.0f && w > 0.0f && w < 0.70f)
+                            if (z >= 0.80f && z <= 1.0f && w > 0.0f && w < 0.80f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SE";
@@ -465,9 +465,9 @@ namespace ModAudio
                                 wDir = "> >";
                             }
 
-                            GUILayout.Label($"{z} {zDir}", compassLabel, GUILayout.Width(50f));
+                            GUILayout.Label($"{zDir}", compassLabel, GUILayout.Width(50f));
                             GUILayout.Label($"{direction}", compassLabel, GUILayout.Width(200f));
-                            GUILayout.Label($"{w} {wDir}", compassLabel, GUILayout.Width(50f));
+                            GUILayout.Label($"{wDir}", compassLabel, GUILayout.Width(50f));
                         }
 
                         GUI.backgroundColor = defaultBgC;
