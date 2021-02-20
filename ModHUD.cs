@@ -84,7 +84,7 @@ namespace ModAudio
 
             try
             {
-                ModAPI.Log.Write($"Searching XML runtime configuration file {RuntimeConfigurationFile}");
+                ModAPI.Log.Write($"Searching XML runtime configuration file {RuntimeConfigurationFile}...");
                 if (File.Exists(RuntimeConfigurationFile))
                 {
                     using (var xmlReader = XmlReader.Create(new StreamReader(RuntimeConfigurationFile)))
