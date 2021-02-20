@@ -26,7 +26,7 @@ namespace ModAudio
         private static float ModScreenStartPositionX { get; set; } = 0f;
         private static float ModScreenStartPositionY { get; set; } = Screen.height - ModScreenTotalHeight- 75f;
         private static bool IsMinimized { get; set; } = false;
-        private bool ShowUI = false;
+        private bool ShowUI = true;
         public static Rect ModHUDScreen = new Rect(ModScreenStartPositionX, ModScreenStartPositionY, ModScreenTotalWidth, ModScreenTotalHeight);
 
         private static Player LocalPlayer;
