@@ -418,12 +418,12 @@ namespace ModAudio
                                 wDir = "< <";
                             }
 
-                            if (z >= 0.70f && w >= -0.70f)
+                            if (z >= 0.70f && w <= -0.70f)
                             {
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Hydration);
                                 direction = "W";
-                                zDir = $"- {z} -";
-                                wDir = $"< {w} <";
+                                zDir = $"- -";
+                                wDir = $"< <";
                             }
 
                             if (z >= 0.80f && z<= 1.0f  && w >= -0.60f && w < 0.0f)
@@ -441,7 +441,7 @@ namespace ModAudio
                                 wDir = "- -";
                             }
 
-                            if (z >= 0.80f && z <= 1.0f && w > 0.0f && w < 0.80f)
+                            if (z > 0.70f && z <= 1.0f && w > 0.0f && w < 0.70f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SE";
@@ -453,8 +453,8 @@ namespace ModAudio
                             {
                                 GUI.color = defaultC;
                                 direction = "E";
-                                zDir = $"- {z} -";
-                                wDir = $"> {w} >";
+                                zDir = $"- -";
+                                wDir = $"> >";
                             }
 
                             if (z > 0.0f && z < 0.70f  && w >= 0.80f && w < 1.0f)
