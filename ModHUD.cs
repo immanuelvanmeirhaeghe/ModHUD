@@ -69,12 +69,12 @@ namespace ModAudio
             => $"<color=#{ (headcolor != null ? ColorUtility.ToHtmlStringRGBA(headcolor.Value) : ColorUtility.ToHtmlStringRGBA(Color.red))  }>{messageType}</color>\n{message}";
 
         private static readonly string RuntimeConfigurationFile = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), "RuntimeConfiguration.xml");
-        private static KeyCode ModHUDKeybindingId { get; set; } = KeyCode.Alpha7;
+        private static KeyCode ModHUDBindingKeyId { get; set; } = KeyCode.Alpha7;
 
         public void Start()
         {
             ModManager.ModManager.onPermissionValueChanged += ModManager_onPermissionValueChanged;
-            ModHUDKeybindingId = GetConfigurableKey(nameof(ModHUDKeybindingId));
+            ModHUDBindingKeyId = GetConfigurableKey(nameof(ModHUDBindingKeyId));
         }
 
         private KeyCode GetConfigurableKey(string keybindingId)
@@ -102,7 +102,7 @@ namespace ModAudio
                 }
                 configuredKeyCode = !string.IsNullOrEmpty(configuredKeybindingId)
                                                             ? (KeyCode)Enum.Parse(typeof(KeyCode), configuredKeybindingId)
-                                                            : ModHUDKeybindingId;
+                                                            : ModHUDBindingKeyId;
                 return configuredKeyCode;
             }
             catch (Exception exc)
@@ -176,7 +176,7 @@ namespace ModAudio
 
         private void Update()
         {
-            if (Input.GetKeyDown(ModHUDKeybindingId))
+            if (Input.GetKeyDown(ModHUDBindingKeyId))
             {
                 if (!ShowUI)
                 {
