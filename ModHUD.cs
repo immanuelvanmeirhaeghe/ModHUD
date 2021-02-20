@@ -145,18 +145,6 @@ namespace ModAudio
                 }
                 ToggleShowUI();
             }
-
-            if (Input.GetKey(KeyCode.RightControl) && Input.GetKeyDown(KeyCode.T))
-            {
-                DumpTextures();
-                ShowHUDBigInfo(HUDBigInfoMessage($"Dumped all texture info to {ReportPath}", MessageType.Info));
-            }
-
-            if (Input.GetKey(KeyCode.RightControl) && Input.GetKeyDown(KeyCode.Y))
-            {
-                DumpIconsInfo();
-                ShowHUDBigInfo(HUDBigInfoMessage($"Dumped all item icon info to {Application.dataPath.Replace("GH_Data", "Logs")}/{nameof(ModHUD)}.log", MessageType.Info));
-            }
         }
 
         private void ToggleShowUI()
@@ -190,6 +178,7 @@ namespace ModAudio
             LocalCompass = LocalWatch?.m_Canvas.transform.Find("Compass").gameObject.transform.Find("CompassIcon").gameObject;
             if (LocalCompass == null)
             {
+                Input.compass.enabled = true;
                 LocalCompass = new GameObject(nameof(LocalCompass));
             }
         }
@@ -370,17 +359,19 @@ namespace ModAudio
             try
             {
                 Color defaultC = GUI.color;
-                GUIStyle labelStyle = new GUIStyle(GUI.skin.label)
+                Color defaultBgC = GUI.backgroundColor;
+                GUIStyle positionLabelStyle = new GUIStyle(GUI.skin.label)
                 {
-                    fixedWidth = 50f,
-                    fontSize = 20
+                    fontSize = 20,
+                    fontStyle = FontStyle.Bold
                 };
 
                 if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
                 {
                     using (var compassScope = new GUILayout.VerticalScope(GUI.skin.label))
                     {
-                        using (var directionScope = new GUILayout.HorizontalScope(GUI.skin.label))
+                        GUI.backgroundColor = Color.black;
+                        using (var directionScope = new GUILayout.HorizontalScope(GUI.skin.box))
                         {
                             Vector3 forward = LocalPlayer.gameObject.transform.forward;
                             float angle = Vector3.Angle(Vector3.forward, forward);
@@ -390,6 +381,8 @@ namespace ModAudio
                             }
                             Quaternion rotation = Quaternion.Euler(new Vector3(0f, 0f, angle));
                             string direction = string.Empty;
+                            string zDir = string.Empty;
+                            string wDir = string.Empty;
 
                             float z = (float)Math.Round(rotation.z, 2, MidpointRounding.ToEven);
                             float w = (float)Math.Round(rotation.w, 2, MidpointRounding.ToEven);
@@ -398,54 +391,71 @@ namespace ModAudio
                             {
                                 GUI.color = defaultC;
                                 direction = "N";
+                                zDir = "^^";
+                                wDir = "--";
                             }
 
                             if (z > 0.0f && z < 0.7f && w >= -1.0f && w < -0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NW";
+                                zDir = "^^";
+                                wDir = "<<";
                             }
 
                             if (Mathf.Round(z) == 0.7f && Mathf.Round(w) == -0.7f)
                             {
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Hydration);
                                 direction = "W";
+                                zDir = "--";
+                                wDir = "<<";
                             }
 
                             if (z > 0.7f && z<= 1.0f  && w > -0.7f && w < 0.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SW";
+                                zDir = "vv";
+                                wDir = "<<";
                             }
 
                             if (Math.Abs(z) == 1.0f && w == 0.0f)
                             {
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Proteins);
                                 direction = "S";
+                                zDir = "vv";
+                                wDir = "--";
                             }
 
-                            if (z < 1.0f && z > 0.7f && w > 0.0f && w < 0.7f)
+                            if (z > 0.7f && z <= 1.0f && w > 0.0f && w < 0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SE";
+                                zDir = "vv";
+                                wDir = ">>";
                             }
 
                             if (Mathf.Round(z) == 0.7f && Mathf.Round(w) == 0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "E";
+                                zDir = "--";
+                                wDir = ">>";
                             }
 
-                            if (z < 0.7f && z > 0.0f && w > 0.7f && w < 1.0f)
+                            if (z > 0.0f && z < 0.7f  && w > 0.7f && w < 1.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NE";
+                                zDir = "^^";
+                                wDir = ">>";
                             }
-                            GUILayout.Label($"{z}", GUI.skin.label, GUILayout.Width(50f));
-                            GUILayout.Label($"{direction}", GUI.skin.label, GUILayout.Width(200f));
-                            GUILayout.Label($"{w}", GUI.skin.label,GUILayout.Width(50f));
-                        }
 
+                            GUILayout.Label($"{zDir}", GUI.skin.label, GUILayout.Width(50f));
+                            GUILayout.Label($"{direction}", positionLabelStyle, GUILayout.Width(200f));
+                            GUILayout.Label($"{wDir}", GUI.skin.label,GUILayout.Width(50f));
+                        }
+                        GUI.backgroundColor = defaultBgC;
                         using (var positionScope = new GUILayout.VerticalScope(GUI.skin.label))
                         {
                             LocalPlayer.GetGPSCoordinates(out int gps_lat, out int gps_long);
@@ -454,16 +464,16 @@ namespace ModAudio
                             using (var coordinatesWScope = new GUILayout.HorizontalScope(GUI.skin.label))
                             {
                                 GUI.color = defaultC;
-                                GUILayout.Label($"{ GPSCoordinatesW}", labelStyle);
+                                GUILayout.Label($"{ GPSCoordinatesW}", positionLabelStyle);
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Hydration);
-                                GUILayout.Label($"\'W", labelStyle);
+                                GUILayout.Label($"\'W", positionLabelStyle);
                             }
                             using (var coordinatesSScope = new GUILayout.HorizontalScope(GUI.skin.label))
                             {
                                 GUI.color = defaultC;
-                                GUILayout.Label($"{ GPSCoordinatesS}", labelStyle);
+                                GUILayout.Label($"{ GPSCoordinatesS}", positionLabelStyle);
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Proteins);
-                                GUILayout.Label($"\'S", labelStyle);
+                                GUILayout.Label($"\'S", positionLabelStyle);
                             }
                         }
                     }
@@ -481,77 +491,6 @@ namespace ModAudio
             catch (Exception exc)
             {
                 HandleException(exc, nameof(CompassBox));
-            }
-        }
-
-        private void DumpTextures()
-        {
-            try
-            {
-                FileStream fileStream = File.Create(ReportPath);
-                string text2 = string.Empty;
-                LocalSortedTextures.Clear();
-                Texture[] array = Resources.FindObjectsOfTypeAll<Texture>();
-                int num = 0;
-                foreach (Texture texture in array)
-                {
-                    int num2 = texture.width * texture.height;
-                    if (!LocalSortedTextures.ContainsKey(num2))
-                    {
-                        LocalSortedTextures.Add(num2, new List<string>());
-                    }
-                    else
-                    {
-                        LocalSortedTextures[num2].Add(texture.name);
-                    }
-                    num += num2;
-                }
-                SortedDictionary<int, List<string>>.Enumerator enumerator = LocalSortedTextures.GetEnumerator();
-                while (enumerator.MoveNext())
-                {
-                    enumerator.Current.Value.Sort();
-                }
-                enumerator = LocalSortedTextures.GetEnumerator();
-                while (enumerator.MoveNext())
-                {
-                    enumerator.Current.Value.Sort();
-                }
-                enumerator = LocalSortedTextures.GetEnumerator();
-                while (enumerator.MoveNext())
-                {
-                    List<string>.Enumerator enumerator2 = enumerator.Current.Value.GetEnumerator();
-                    while (enumerator2.MoveNext())
-                    {
-                        text2 = text2 + "Name: " + enumerator2.Current;
-                        text2 = text2 + " Mem: " + enumerator.Current.Key;
-                        text2 += Environment.NewLine;
-                    }
-                }
-                text2 = text2 + "TotalMem: " + num;
-                byte[] bytes = Encoding.ASCII.GetBytes(text2);
-                fileStream.Write(bytes, 0, bytes.Length);
-                fileStream.Close();
-            }
-            catch (Exception exc)
-            {
-                HandleException(exc, nameof(DumpTextures));
-            }
-        }
-
-        private void DumpIconsInfo()
-        {
-            try
-            {
-                StringBuilder iconsInfo = new StringBuilder($"\nDumped Items Icon Info\n");
-                foreach (var itemIconSprite in LocalItemsManager.m_ItemIconsSprites)
-                {
-                    iconsInfo.AppendLine($"Key\t{itemIconSprite.Key}");
-                }
-                ModAPI.Log.Write(iconsInfo.ToString());
-            }
-            catch (Exception exc)
-            {
-                HandleException(exc, nameof(DumpIconsInfo));
             }
         }
     }
