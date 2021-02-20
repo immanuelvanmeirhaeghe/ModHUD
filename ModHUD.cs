@@ -390,44 +390,51 @@ namespace ModAudio
                             }
                             Quaternion rotation = Quaternion.Euler(new Vector3(0f, 0f, angle));
                             string direction = string.Empty;
-                            double z = Math.Round(rotation.z, 2, MidpointRounding.ToEven);
-                            double w = Math.Round(rotation.w, 2, MidpointRounding.ToEven);
+                            double z = Math.Round(rotation.z, 1, MidpointRounding.ToEven);
+                            double w = Math.Round(rotation.w, 1, MidpointRounding.ToEven);
 
-                            if (z == 0.0f && Math.Abs(Math.Round(w)) == 1.0f)
+                            if (z == 0.0f && Math.Abs(w) == 1.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "N";
                             }
-                            if (z >= 0.1f && z < 0.7f && w >= -1.0f && w < -0.7f)
+
+                            if (z >= 0.1f && z < 0.7f && w >= -0.9f && w < -0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NW";
                             }
-                            if (z >= 0.7f && z < 0.8f && w >= -0.7f && w < -0.6f)
+
+                            if (z == 0.7f && w == -0.7f)
                             {
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Hydration);
                                 direction = "W";
                             }
+
                             if (z >= 0.8f && z< 1.0f  && w >= -0.6f && w < 0.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SW";
                             }
-                            if (Math.Abs(Math.Round(z)) == 1.0f && w == 0.0f)
+
+                            if (Math.Abs(z) == 1.0f && w == 0.0f)
                             {
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Proteins);
                                 direction = "S";
                             }
-                            if (z <= 0.8f && z > 0.7f && w >= 0.1f && w < 0.7f)
+
+                            if (z <= 0.9f && z > 0.7f && w >= 0.1f && w < 0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SE";
                             }
-                            if (z <= 0.7f && z > 0.6f && w >= 0.7f && w < 0.8f)
+
+                            if (z == 0.7f  && w == 0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "E";
                             }
+
                             if (z <= 0.6f && z > 0.0f && w >= 0.8f && w < 1.0f)
                             {
                                 GUI.color = defaultC;
