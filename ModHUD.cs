@@ -363,6 +363,7 @@ namespace ModAudio
                 GUIStyle positionLabelStyle = new GUIStyle(GUI.skin.label)
                 {
                     fontSize = 20,
+                    alignment = TextAnchor.MiddleCenter,
                     fontStyle = FontStyle.Bold
                 };
 
@@ -391,69 +392,69 @@ namespace ModAudio
                             {
                                 GUI.color = defaultC;
                                 direction = "N";
-                                zDir = "^^";
-                                wDir = "--";
+                                zDir = "^ ^";
+                                wDir = "- -";
                             }
 
                             if (z > 0.0f && z < 0.7f && w >= -1.0f && w < -0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NW";
-                                zDir = "^^";
-                                wDir = "<<";
+                                zDir = "^ ^";
+                                wDir = "< <";
                             }
 
-                            if (Mathf.Round(z) == 0.7f && Mathf.Round(w) == -0.7f)
+                            if (Mathf.Approximately(z, 0.70f) && Mathf.Approximately(w, -0.70f))
                             {
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Hydration);
                                 direction = "W";
-                                zDir = "--";
-                                wDir = "<<";
+                                zDir = $"- {z} -";
+                                wDir = $"< {w} <";
                             }
 
                             if (z > 0.7f && z<= 1.0f  && w > -0.7f && w < 0.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SW";
-                                zDir = "vv";
-                                wDir = "<<";
+                                zDir = "v v";
+                                wDir = "< <";
                             }
 
                             if (Math.Abs(z) == 1.0f && w == 0.0f)
                             {
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Proteins);
                                 direction = "S";
-                                zDir = "vv";
-                                wDir = "--";
+                                zDir = "v v";
+                                wDir = "- -";
                             }
 
                             if (z > 0.7f && z <= 1.0f && w > 0.0f && w < 0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SE";
-                                zDir = "vv";
-                                wDir = ">>";
+                                zDir = "v v";
+                                wDir = "> >";
                             }
 
-                            if (Mathf.Round(z) == 0.7f && Mathf.Round(w) == 0.7f)
+                            if (Mathf.Approximately(z, 0.70f) && Mathf.Approximately(w, 0.70f))
                             {
                                 GUI.color = defaultC;
                                 direction = "E";
-                                zDir = "--";
-                                wDir = ">>";
+                                zDir = $"- {z} -";
+                                wDir = $"> {w} >";
                             }
 
                             if (z > 0.0f && z < 0.7f  && w > 0.7f && w < 1.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NE";
-                                zDir = "^^";
-                                wDir = ">>";
+                                zDir = "^ ^";
+                                wDir = "> >";
                             }
 
-                            GUILayout.Label($"{zDir}", GUI.skin.label, GUILayout.Width(50f));
+                            GUILayout.Label($"{zDir}", positionLabelStyle, GUILayout.Width(50f));
                             GUILayout.Label($"{direction}", positionLabelStyle, GUILayout.Width(200f));
-                            GUILayout.Label($"{wDir}", GUI.skin.label,GUILayout.Width(50f));
+                            GUILayout.Label($"{wDir}", positionLabelStyle, GUILayout.Width(50f));
                         }
                         GUI.backgroundColor = defaultBgC;
                         using (var positionScope = new GUILayout.VerticalScope(GUI.skin.label))
@@ -464,16 +465,16 @@ namespace ModAudio
                             using (var coordinatesWScope = new GUILayout.HorizontalScope(GUI.skin.label))
                             {
                                 GUI.color = defaultC;
-                                GUILayout.Label($"{ GPSCoordinatesW}", positionLabelStyle);
+                                GUILayout.Label($"{ GPSCoordinatesW}", GUI.skin.label);
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Hydration);
-                                GUILayout.Label($"\'W", positionLabelStyle);
+                                GUILayout.Label($"\'W", GUI.skin.label);
                             }
                             using (var coordinatesSScope = new GUILayout.HorizontalScope(GUI.skin.label))
                             {
                                 GUI.color = defaultC;
-                                GUILayout.Label($"{ GPSCoordinatesS}", positionLabelStyle);
+                                GUILayout.Label($"{ GPSCoordinatesS}", GUI.skin.label);
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Proteins);
-                                GUILayout.Label($"\'S", positionLabelStyle);
+                                GUILayout.Label($"\'S", GUI.skin.label);
                             }
                         }
                     }
