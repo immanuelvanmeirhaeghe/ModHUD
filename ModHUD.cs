@@ -360,10 +360,24 @@ namespace ModAudio
             {
                 Color defaultC = GUI.color;
                 Color defaultBgC = GUI.backgroundColor;
-                GUIStyle positionLabelStyle = new GUIStyle(GUI.skin.label)
+                GUIStyle compassLabel = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 30,
+                    alignment = TextAnchor.MiddleCenter,
+                    fontStyle = FontStyle.Bold
+                };
+
+                GUIStyle positionLabel = new GUIStyle(GUI.skin.label)
                 {
                     fontSize = 20,
-                    alignment = TextAnchor.MiddleCenter,
+                    alignment = TextAnchor.MiddleRight,
+                    fontStyle = FontStyle.Bold
+                };
+
+                GUIStyle directionLabel = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 20,
+                    alignment = TextAnchor.MiddleLeft,
                     fontStyle = FontStyle.Bold
                 };
 
@@ -390,13 +404,13 @@ namespace ModAudio
 
                             if (z == 0.0f && Math.Abs(w) == 1.0f)
                             {
-                                GUI.color = defaultC;
+                                GUI.color = IconColors.GetColor(IconColors.Icon.Proteins);
                                 direction = "N";
                                 zDir = "^ ^";
                                 wDir = "- -";
                             }
 
-                            if (z > 0.0f && z < 0.7f && w >= -1.0f && w < -0.7f)
+                            if (z > 0.0f && z < 0.70f && w >= -1.0f && w < -0.70f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NW";
@@ -404,7 +418,7 @@ namespace ModAudio
                                 wDir = "< <";
                             }
 
-                            if (Mathf.Approximately(z, 0.70f) && Mathf.Approximately(w, -0.70f))
+                            if (z >= 0.70f && w >= -0.70f)
                             {
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Hydration);
                                 direction = "W";
@@ -412,7 +426,7 @@ namespace ModAudio
                                 wDir = $"< {w} <";
                             }
 
-                            if (z > 0.7f && z<= 1.0f  && w > -0.7f && w < 0.0f)
+                            if (z >= 0.80f && z<= 1.0f  && w >= -0.60f && w < 0.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SW";
@@ -422,13 +436,12 @@ namespace ModAudio
 
                             if (Math.Abs(z) == 1.0f && w == 0.0f)
                             {
-                                GUI.color = IconColors.GetColor(IconColors.Icon.Proteins);
                                 direction = "S";
                                 zDir = "v v";
                                 wDir = "- -";
                             }
 
-                            if (z > 0.7f && z <= 1.0f && w > 0.0f && w < 0.7f)
+                            if (z > 0.70f && z <= 1.0f && w > 0.0f && w < 0.70f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SE";
@@ -436,7 +449,7 @@ namespace ModAudio
                                 wDir = "> >";
                             }
 
-                            if (Mathf.Approximately(z, 0.70f) && Mathf.Approximately(w, 0.70f))
+                            if (z >= 0.70f && w >= 0.70f)
                             {
                                 GUI.color = defaultC;
                                 direction = "E";
@@ -444,7 +457,7 @@ namespace ModAudio
                                 wDir = $"> {w} >";
                             }
 
-                            if (z > 0.0f && z < 0.7f  && w > 0.7f && w < 1.0f)
+                            if (z > 0.0f && z < 0.70f  && w >= 0.80f && w < 1.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NE";
@@ -452,10 +465,11 @@ namespace ModAudio
                                 wDir = "> >";
                             }
 
-                            GUILayout.Label($"{zDir}", positionLabelStyle, GUILayout.Width(50f));
-                            GUILayout.Label($"{direction}", positionLabelStyle, GUILayout.Width(200f));
-                            GUILayout.Label($"{wDir}", positionLabelStyle, GUILayout.Width(50f));
+                            GUILayout.Label($"{z} {zDir}", compassLabel, GUILayout.Width(50f));
+                            GUILayout.Label($"{direction}", compassLabel, GUILayout.Width(200f));
+                            GUILayout.Label($"{w} {wDir}", compassLabel, GUILayout.Width(50f));
                         }
+
                         GUI.backgroundColor = defaultBgC;
                         using (var positionScope = new GUILayout.VerticalScope(GUI.skin.label))
                         {
@@ -465,16 +479,16 @@ namespace ModAudio
                             using (var coordinatesWScope = new GUILayout.HorizontalScope(GUI.skin.label))
                             {
                                 GUI.color = defaultC;
-                                GUILayout.Label($"{ GPSCoordinatesW}", GUI.skin.label);
+                                GUILayout.Label($"{ GPSCoordinatesW}", positionLabel, GUILayout.Width(75f));
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Hydration);
-                                GUILayout.Label($"\'W", GUI.skin.label);
+                                GUILayout.Label($"\'W", directionLabel, GUILayout.Width(75f));
                             }
                             using (var coordinatesSScope = new GUILayout.HorizontalScope(GUI.skin.label))
                             {
                                 GUI.color = defaultC;
-                                GUILayout.Label($"{ GPSCoordinatesS}", GUI.skin.label);
+                                GUILayout.Label($"{ GPSCoordinatesS}", positionLabel, GUILayout.Width(75f));
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Proteins);
-                                GUILayout.Label($"\'S", GUI.skin.label);
+                                GUILayout.Label($"\'S", directionLabel, GUILayout.Width(75f));
                             }
                         }
                     }
