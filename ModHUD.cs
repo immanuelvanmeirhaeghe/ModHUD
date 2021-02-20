@@ -399,7 +399,7 @@ namespace ModAudio
                                 direction = "N";
                             }
 
-                            if (z > 0.0f && z < 0.7f && w >= -0.9f && w < -0.7f)
+                            if (z > 0.0f && z < 0.7f && w >= -1.0f && w < -0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NW";
@@ -411,7 +411,7 @@ namespace ModAudio
                                 direction = "W";
                             }
 
-                            if (z > 0.7f && z< 1.0f  && w > -0.7f && w < 0.0f)
+                            if (z > 0.7f && z<= 1.0f  && w > -0.7f && w < 0.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SW";
