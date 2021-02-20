@@ -390,8 +390,8 @@ namespace ModAudio
                             }
                             Quaternion rotation = Quaternion.Euler(new Vector3(0f, 0f, angle));
                             string direction = string.Empty;
-                            double z = Math.Round(rotation.z, 1, MidpointRounding.ToEven);
-                            double w = Math.Round(rotation.w, 1, MidpointRounding.ToEven);
+                            double z = Math.Round(rotation.z, 2, MidpointRounding.ToEven);
+                            double w = Math.Round(rotation.w, 2, MidpointRounding.ToEven);
 
                             if (z == 0.0f && Math.Abs(w) == 1.0f)
                             {
@@ -399,7 +399,7 @@ namespace ModAudio
                                 direction = "N";
                             }
 
-                            if (z >= 0.1f && z < 0.7f && w >= -0.9f && w < -0.7f)
+                            if (z > 0.0f && z < 0.7f && w >= -0.9f && w < -0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NW";
@@ -411,7 +411,7 @@ namespace ModAudio
                                 direction = "W";
                             }
 
-                            if (z >= 0.8f && z< 1.0f  && w >= -0.6f && w < 0.0f)
+                            if (z > 0.7f && z< 1.0f  && w > -0.7f && w < 0.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SW";
@@ -423,7 +423,7 @@ namespace ModAudio
                                 direction = "S";
                             }
 
-                            if (z <= 0.9f && z > 0.7f && w >= 0.1f && w < 0.7f)
+                            if (z < 1.0f && z > 0.7f && w > 0.0f && w < 0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SE";
@@ -435,14 +435,14 @@ namespace ModAudio
                                 direction = "E";
                             }
 
-                            if (z <= 0.6f && z > 0.0f && w >= 0.8f && w < 1.0f)
+                            if (z < 0.7f && z > 0.0f && w > 0.7f && w < 1.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NE";
                             }
-                            GUILayout.Label($"{z}", GUI.skin.label, GUILayout.Width(25f));
-                            GUILayout.Label($"{direction}", GUI.skin.label);
-                            GUILayout.Label($"{w}", GUI.skin.label,GUILayout.Width(25f));
+                            GUILayout.Label($"{z}", GUI.skin.label, GUILayout.Width(50f));
+                            GUILayout.Label($"{direction}", GUI.skin.label, GUILayout.Width(200f));
+                            GUILayout.Label($"{w}", GUI.skin.label,GUILayout.Width(50f));
                         }
 
                         using (var positionScope = new GUILayout.VerticalScope(GUI.skin.label))
