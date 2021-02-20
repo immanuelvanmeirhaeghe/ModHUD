@@ -390,8 +390,9 @@ namespace ModAudio
                             }
                             Quaternion rotation = Quaternion.Euler(new Vector3(0f, 0f, angle));
                             string direction = string.Empty;
-                            double z = Math.Round(rotation.z, 2, MidpointRounding.ToEven);
-                            double w = Math.Round(rotation.w, 2, MidpointRounding.ToEven);
+
+                            float z = (float)Math.Round(rotation.z, 2, MidpointRounding.ToEven);
+                            float w = (float)Math.Round(rotation.w, 2, MidpointRounding.ToEven);
 
                             if (z == 0.0f && Math.Abs(w) == 1.0f)
                             {
@@ -405,7 +406,7 @@ namespace ModAudio
                                 direction = "NW";
                             }
 
-                            if (z == 0.7f && w == -0.7f)
+                            if (Mathf.Round(z) == 0.7f && Mathf.Round(w) == -0.7f)
                             {
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Hydration);
                                 direction = "W";
@@ -429,7 +430,7 @@ namespace ModAudio
                                 direction = "SE";
                             }
 
-                            if (z == 0.7f  && w == 0.7f)
+                            if (Mathf.Round(z) == 0.7f && Mathf.Round(w) == 0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "E";
