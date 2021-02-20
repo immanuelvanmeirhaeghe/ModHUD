@@ -373,7 +373,7 @@ namespace ModAudio
                 GUIStyle labelStyle = new GUIStyle(GUI.skin.label)
                 {
                     fixedWidth = 50f,
-                    fontSize = 18
+                    fontSize = 20
                 };
 
                 if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
@@ -398,37 +398,37 @@ namespace ModAudio
                                 GUI.color = defaultC;
                                 direction = "N";
                             }
-                            if (z >= 0.1f && z <= 0.7f && w >= -1.0f && w < -0.7f)
+                            if (z >= 0.1f && z < 0.7f && w >= -1.0f && w < -0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NW";
                             }
-                            if (z== 0.7f && w == -0.7f)
+                            if (z >= 0.7f && w >= -0.7f)
                             {
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Hydration);
                                 direction = "W";
                             }
-                            if (z>= 0.8f && z<= 1.0f  && w >= -0.7f && w <= 0.0f)
+                            if (z >= 0.8f && z<= 1.0f  && w >= -0.6f && w <= 0.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SW";
                             }
-                            if (Math.Abs(Math.Round(rotation.z)) == 1.0f && w == 0.0f)
+                            if (Math.Abs(Math.Round(z)) == 1.0f && w == 0.0f)
                             {
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Proteins);
                                 direction = "S";
                             }
-                            if (z> 0.7f && w > 0.0f && w < 0.7f)
+                            if (z <= 0.8f && w > 0.0f && w < 0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "SE";
                             }
-                            if (z== 0.7f && w == 0.7f)
+                            if (z <= 0.7f && w >= 0.7f)
                             {
                                 GUI.color = defaultC;
                                 direction = "E";
                             }
-                            if (z>= 0.1f && z <= 0.7f && w >= 0.8f && w <= 1.0f)
+                            if (z >= 0.1f && z <= 0.6f && w >= 0.8f && w <= 1.0f)
                             {
                                 GUI.color = defaultC;
                                 direction = "NE";
