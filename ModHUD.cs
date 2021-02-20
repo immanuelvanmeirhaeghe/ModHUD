@@ -98,12 +98,14 @@ namespace ModAudio
                                 if (xmlReader["ID"] == keybindingId)
                                 {
                                     ModAPI.Log.Write($"Found configuration for Button with ID = {keybindingId}!");
-                                    configuredKeybinding = xmlReader.Value;
+                                    configuredKeybinding = xmlReader.ReadElementContentAsString();
                                     ModAPI.Log.Write($"Configured keybinding = {configuredKeybinding}.");
                                 }
                             }
                         }
                     }
+
+                    ModAPI.Log.Write($"XML runtime configuration\n{File.ReadAllText(RuntimeConfigurationFile)}\n");
                 }
                 else
                 {
