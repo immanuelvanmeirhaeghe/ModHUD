@@ -80,11 +80,11 @@ namespace ModAudio
         private KeyCode GetConfigurableKey(string keybindingId)
         {
             KeyCode configuredKeyCode = default;
-            string configuredKeybindingId = string.Empty;
+            string configuredKeybinding = string.Empty;
 
             try
             {
-                ModAPI.Log.Write($"Searching XML runtime configuration file\nFilename: {RuntimeConfigurationFile}\nButton ID: {keybindingId}");
+                ModAPI.Log.Write($"Searching XML runtime configuration file {RuntimeConfigurationFile}");
                 if (File.Exists(RuntimeConfigurationFile))
                 {
                     using (var xmlReader = XmlReader.Create(new StreamReader(RuntimeConfigurationFile)))
@@ -92,12 +92,14 @@ namespace ModAudio
                         ModAPI.Log.Write($"Reading XML runtime configuration file...");
                         while (xmlReader.Read())
                         {
+                            ModAPI.Log.Write($"Searching configuration for Button with ID = {keybindingId}...");
                             if (xmlReader.ReadToFollowing(nameof(Button)))
                             {
-                                ModAPI.Log.Write($"Found configuration for Button with ID {xmlReader["ID"]}");
                                 if (xmlReader["ID"] == keybindingId)
                                 {
-                                    configuredKeybindingId = xmlReader.Value;
+                                    ModAPI.Log.Write($"Found configuration for Button with ID = {keybindingId}!");
+                                    configuredKeybinding = xmlReader.Value;
+                                    ModAPI.Log.Write($"Configured keybinding = {configuredKeybinding}.");
                                 }
                             }
                         }
@@ -108,8 +110,8 @@ namespace ModAudio
                     ModAPI.Log.Write($"XML runtime configuration file not found!");
                 }
 
-                configuredKeyCode = !string.IsNullOrEmpty(configuredKeybindingId)
-                                                            ? (KeyCode)Enum.Parse(typeof(KeyCode), configuredKeybindingId)
+                configuredKeyCode = !string.IsNullOrEmpty(configuredKeybinding)
+                                                            ? (KeyCode)Enum.Parse(typeof(KeyCode), configuredKeybinding)
                                                             : ModHUDBindingKeyId;
                 ModAPI.Log.Write($"Configured key code: { configuredKeyCode }");
                 return configuredKeyCode;
