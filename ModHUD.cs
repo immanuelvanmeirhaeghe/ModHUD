@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Xml;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,7 +16,6 @@ namespace ModAudio
     public class ModHUD : MonoBehaviour
     {
         private static ModHUD Instance;
-
         private static readonly string ModName = nameof(ModHUD);
         private static readonly float ModScreenTotalWidth = 300f;
         private static readonly float ModScreenTotalHeight = 300f;
@@ -37,7 +37,7 @@ namespace ModAudio
 
         private static CompareArrayByDimension LocalDimensionComparer = new CompareArrayByDimension();
         private static SortedDictionary<int, List<string>> LocalSortedTextures = new SortedDictionary<int, List<string>>(LocalDimensionComparer);
-        private static readonly string ReportPath = $"{Application.dataPath.Replace("GH_Data", "Logs")}" + "/ModHUD_textures_dump_" + DateTime.Now.ToLongTimeString().Replace(':', '_') + ".log";
+        private static readonly string ReportPath = Path.Combine(Application.dataPath.Replace("GH_Data", "Logs"), "ModHUD_textures_dump_" + DateTime.Now.ToLongTimeString().Replace(':', '_') + ".log");
 
         // Based on Watch
         public static GameObject LocalCompass = new GameObject(nameof(LocalCompass));
@@ -68,9 +68,48 @@ namespace ModAudio
         public static string HUDBigInfoMessage(string message, MessageType messageType, Color? headcolor = null)
             => $"<color=#{ (headcolor != null ? ColorUtility.ToHtmlStringRGBA(headcolor.Value) : ColorUtility.ToHtmlStringRGBA(Color.red))  }>{messageType}</color>\n{message}";
 
+        private static readonly string RuntimeConfigurationFile = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), "RuntimeConfiguration.xml");
+        private static KeyCode ModHUDKeybindingId { get; set; } = KeyCode.Alpha7;
+
         public void Start()
         {
             ModManager.ModManager.onPermissionValueChanged += ModManager_onPermissionValueChanged;
+            ModHUDKeybindingId = GetConfigurableKey(nameof(ModHUDKeybindingId));
+        }
+
+        private KeyCode GetConfigurableKey(string keybindingId)
+        {
+            KeyCode configuredKeyCode = default;
+            string configuredKeybindingId = string.Empty;
+
+            try
+            {
+                if (File.Exists(RuntimeConfigurationFile))
+                {
+                    using (var xmlReader = XmlReader.Create(new StreamReader(RuntimeConfigurationFile)))
+                    {
+                        while (xmlReader.Read())
+                        {
+                            if (xmlReader.ReadToFollowing(nameof(Button)))
+                            {
+                                if (xmlReader["ID"] == keybindingId)
+                                {
+                                    configuredKeybindingId = xmlReader.Value;
+                                }
+                            }
+                        }
+                    }
+                }
+                configuredKeyCode = !string.IsNullOrEmpty(configuredKeybindingId)
+                                                            ? (KeyCode)Enum.Parse(typeof(KeyCode), configuredKeybindingId)
+                                                            : ModHUDKeybindingId;
+                return configuredKeyCode;
+            }
+            catch (Exception exc)
+            {
+                HandleException(exc, nameof(GetConfigurableKey));
+                return configuredKeyCode;
+            }
         }
 
         private void HandleException(Exception exc, string methodName)
@@ -137,7 +176,7 @@ namespace ModAudio
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Alpha7))
+            if (Input.GetKeyDown(ModHUDKeybindingId))
             {
                 if (!ShowUI)
                 {

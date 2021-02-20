@@ -1,5 +1,13 @@
 <Mod ID="ModHUD">
   <Compatible>2.0.4</Compatible>
+  <Button Standard="D7" ID="ModHUDBindingKeyId">
+    <Name>
+      <EN>ModHUDBindingKeyId</EN>
+    </Name>
+    <Description>
+      <EN>Key bound to ModHUD UI.</EN>
+    </Description>
+  </Button>
   <Name>
     <EN>ModHUD</EN>
   </Name>
