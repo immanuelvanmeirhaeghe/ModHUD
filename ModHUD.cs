@@ -84,8 +84,10 @@ namespace ModAudio
 
             try
             {
+                ModAPI.Log.Write($"Searching XML runtime configuration file\nFilename: {RuntimeConfigurationFile}\nButton ID: {keybindingId}");
                 if (File.Exists(RuntimeConfigurationFile))
                 {
+                    ModAPI.Log.Write($"Reading XML runtime configuration file...");
                     using (var xmlReader = XmlReader.Create(new StreamReader(RuntimeConfigurationFile)))
                     {
                         while (xmlReader.Read())
@@ -99,6 +101,10 @@ namespace ModAudio
                             }
                         }
                     }
+                }
+                else
+                {
+                    ModAPI.Log.Write($"XML runtime configuration file not found!");
                 }
                 configuredKeyCode = !string.IsNullOrEmpty(configuredKeybindingId)
                                                             ? (KeyCode)Enum.Parse(typeof(KeyCode), configuredKeybindingId)

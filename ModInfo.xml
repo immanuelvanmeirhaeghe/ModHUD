@@ -1,6 +1,6 @@
 <Mod ID="ModHUD">
   <Compatible>2.0.4</Compatible>
-  <Button Standard="NumPad7" ID="ModHUDBindingKeyId">
+  <Button Standard="NumPad8" ID="ModHUDBindingKeyId">
     <Name>
       <EN>ModHUDBindingKeyId</EN>
     </Name>
