@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace ModAudio
+namespace ModHUD
 {
     class PlayerExtended : Player
     {
