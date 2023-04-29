@@ -1,4 +1,8 @@
-﻿using ModHUD.Enums;
+﻿using AIs;
+using ModHUD.Data.Enums;
+using ModHUD.Managers;
+using ModManager.Data.Interfaces;
+using ModManager.Data.Modding;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,29 +20,32 @@ namespace ModHUD
     public class ModHUD : MonoBehaviour
     {
         private static ModHUD Instance;
+        private static readonly string RuntimeConfiguration = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), "RuntimeConfiguration.xml");
+     
         private static readonly string ModName = nameof(ModHUD);
-        private static readonly float ModScreenTotalWidth = 300f;
-        private static readonly float ModScreenTotalHeight = 300f;
-        private static readonly float ModScreenMinWidth = 300f;
-        private static readonly float ModScreenMaxWidth = 300f;
-        private static readonly float ModScreenMinHeight = 300f;
-        private static readonly float ModScreenMaxHeight = 300f;
-        private static float ModScreenStartPositionX { get; set; } = 0f;
-        private static float ModScreenStartPositionY { get; set; } = Screen.height - ModScreenTotalHeight- 75f;
-        private static bool IsMinimized { get; set; } = false;
-        private bool ShowUI = true;
-        public static Rect ModHUDScreen = new Rect(ModScreenStartPositionX, ModScreenStartPositionY, ModScreenTotalWidth, ModScreenTotalHeight);
+        private static readonly float ModHUDScreenTotalWidth = 300f;
+        private static readonly float ModHUDScreenTotalHeight = 300f;
+        private static readonly float ModHUDScreenMinWidth = 300f;
+        private static readonly float ModHUDScreenMaxWidth = 300f;
+        private static readonly float ModHUDScreenMinHeight = 300f;
+        private static readonly float ModHUDScreenMaxHeight = 300f;
+        private static float ModHUDScreenStartPositionX { get; set; } = 0f;
+        private static float ModHUDScreenStartPositionY { get; set; } = Screen.height - ModHUDScreenTotalHeight - 75f;
+        private static bool IsModHUDScreenMinimized { get; set; } = false;
+        private bool ShowModHUDScreen = true;
+        public static Rect ModHUDScreen = new Rect(ModHUDScreenStartPositionX, ModHUDScreenStartPositionY, ModHUDScreenTotalWidth, ModHUDScreenTotalHeight);
 
         private static Player LocalPlayer;
         private static ItemsManager LocalItemsManager;
         private static HUDManager LocalHUDManager;
         private static Watch LocalWatch;
         private static PlayerConditionModule LocalPlayerConditionModule;
+        private static StylingManager LocalStylingManager;
 
-        private static readonly CompareArrayByDimension LocalDimensionComparer = new CompareArrayByDimension();
-        private static readonly SortedDictionary<int, List<string>> LocalSortedTextures = new SortedDictionary<int, List<string>>(LocalDimensionComparer);
-        private static readonly string ReportPath = Path.Combine(Application.dataPath.Replace("GH_Data", "Logs"), "ModHUD_textures_dump_" + DateTime.Now.ToLongTimeString().Replace(':', '_') + ".log");
+        public bool IsModActiveForMultiplayer { get; private set; }
+        public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
 
+        public IConfigurableMod SelectedMod { get; set; }
         // Based on Watch
         public static GameObject LocalCompass = new GameObject(nameof(LocalCompass));
         public static GameObject LocalHUDCanvas = new GameObject(nameof(LocalHUDCanvas));
@@ -63,79 +70,126 @@ namespace ModHUD
             return Instance;
         }
 
-        public static string OnlyForSinglePlayerOrHostMessage() => $"Only available for single player or when host. Host can activate using ModManager.";
-        public static string PermissionChangedMessage(string permission) => $"Permission to use mods and cheats in multiplayer was {permission}";
-        public static string HUDBigInfoMessage(string message, MessageType messageType, Color? headcolor = null)
-            => $"<color=#{ (headcolor != null ? ColorUtility.ToHtmlStringRGBA(headcolor.Value) : ColorUtility.ToHtmlStringRGBA(Color.red))  }>{messageType}</color>\n{message}";
+        public static string OnlyForSinglePlayerOrHostMessage()
+            => $"Only available for single player or when host. Host can activate using ModManager.";
+        private string PermissionChangedMessage(string permission, string reason)
+               => $"Permission to use mods and cheats in multiplayer was {permission} because {reason}.";
+        private string HUDBigInfoMessage(string message, MessageType messageType, Color? headcolor = null)
+            => $"<color=#{(headcolor != null ? ColorUtility.ToHtmlStringRGBA(headcolor.Value) : ColorUtility.ToHtmlStringRGBA(Color.red))}>{messageType}</color>\n{message}";
+        
+        private KeyCode ShortcutKey { get; set; } = KeyCode.Keypad7;
 
-        private static readonly string RuntimeConfigurationFile = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), "RuntimeConfiguration.xml");
-        private static KeyCode ModKeybindingId { get; set; } = KeyCode.Keypad7;
-
-        public void Start()
+        private void ModManager_onPermissionValueChanged(bool optionValue)
         {
-            ModManager.ModManager.onPermissionValueChanged += ModManager_onPermissionValueChanged;
-            ModKeybindingId = GetConfigurableKey(nameof(ModKeybindingId));
+            string reason = optionValue ? "the game host allowed usage" : "the game host did not allow usage";
+            IsModActiveForMultiplayer = optionValue;
+
+            ShowHUDBigInfo(
+                          (optionValue ?
+                            HUDBigInfoMessage(PermissionChangedMessage($"granted", $"{reason}"), MessageType.Info, Color.green)
+                            : HUDBigInfoMessage(PermissionChangedMessage($"revoked", $"{reason}"), MessageType.Info, Color.yellow))
+                            );
         }
 
-        private KeyCode GetConfigurableKey(string buttonId)
+        public void ShowHUDBigInfo(string text, float duration = 3f)
         {
-            KeyCode configuredKeyCode = default;
-            string configuredKeybinding = string.Empty;
+            string header = $"{ModName} Info";
+            string textureName = HUDInfoLogTextureType.Count.ToString();
+            HUDBigInfo obj = (HUDBigInfo)LocalHUDManager.GetHUD(typeof(HUDBigInfo));
+            HUDBigInfoData.s_Duration = duration;
+            HUDBigInfoData data = new HUDBigInfoData
+            {
+                m_Header = header,
+                m_Text = text,
+                m_TextureName = textureName,
+                m_ShowTime = Time.time
+            };
+            obj.AddInfo(data);
+            obj.Show(show: true);
+        }
 
+        public void ShowHUDInfoLog(string itemID, string localizedTextKey)
+        {
+            Localization localization = GreenHellGame.Instance.GetLocalization();
+            var messages = ((HUDMessages)LocalHUDManager.GetHUD(typeof(HUDMessages)));
+            messages.AddMessage($"{localization.Get(localizedTextKey)}  {localization.Get(itemID)}");
+        }
+        
+        public KeyCode GetShortcutKey(string buttonID)
+        {
+            var ConfigurableModList = GetModList();
+            if (ConfigurableModList != null && ConfigurableModList.Count > 0)
+            {
+                SelectedMod = ConfigurableModList.Find(cfgMod => cfgMod.ID == ModName);
+                return SelectedMod.ConfigurableModButtons.Find(cfgButton => cfgButton.ID == buttonID).ShortcutKey;
+            }
+            else
+            {
+                if (buttonID==nameof(ShortcutKey))
+                {
+                    return KeyCode.Keypad7;
+                }
+            }
+            return KeyCode.None;
+        }
+
+        private List<IConfigurableMod> GetModList()
+        {
+            List<IConfigurableMod> modList = new List<IConfigurableMod>();
             try
             {
-                if (File.Exists(RuntimeConfigurationFile))
+                if (File.Exists(RuntimeConfiguration))
                 {
-                    using (var xmlReader = XmlReader.Create(new StreamReader(RuntimeConfigurationFile)))
+                    using (XmlReader configFileReader = XmlReader.Create(new StreamReader(RuntimeConfiguration)))
                     {
-                        while (xmlReader.Read())
+                        while (configFileReader.Read())
                         {
-                            if (xmlReader["ID"] == ModName)
+                            configFileReader.ReadToFollowing("Mod");
+                            do
                             {
-                                if (xmlReader.ReadToFollowing(nameof(Button)) && xmlReader["ID"] == buttonId)
+                                string gameID = GameID.GreenHell.ToString();
+                                string modID = configFileReader.GetAttribute(nameof(IConfigurableMod.ID));
+                                string uniqueID = configFileReader.GetAttribute(nameof(IConfigurableMod.UniqueID));
+                                string version = configFileReader.GetAttribute(nameof(IConfigurableMod.Version));
+
+                                var configurableMod = new ConfigurableMod(gameID, modID, uniqueID, version);
+
+                                configFileReader.ReadToDescendant("Button");
+                                do
                                 {
-                                    configuredKeybinding = xmlReader.ReadElementContentAsString();
+                                    string buttonID = configFileReader.GetAttribute(nameof(IConfigurableModButton.ID));
+                                    string buttonKeyBinding = configFileReader.ReadElementContentAsString();
+
+                                    configurableMod.AddConfigurableModButton(buttonID, buttonKeyBinding);
+
+                                } while (configFileReader.ReadToNextSibling("Button"));
+
+                                if (!modList.Contains(configurableMod))
+                                {
+                                    modList.Add(configurableMod);
                                 }
-                            }
+
+                            } while (configFileReader.ReadToNextSibling("Mod"));
                         }
                     }
                 }
-
-                configuredKeybinding = configuredKeybinding?.Replace("NumPad", "Keypad");
-
-                configuredKeyCode = (KeyCode)(!string.IsNullOrEmpty(configuredKeybinding)
-                                                            ? Enum.Parse(typeof(KeyCode), configuredKeybinding)
-                                                            : ModKeybindingId);
-
-                return configuredKeyCode;
+                return modList;
             }
             catch (Exception exc)
             {
-                HandleException(exc, nameof(GetConfigurableKey));
-                configuredKeyCode = ModKeybindingId;
-                return configuredKeyCode;
+                HandleException(exc, nameof(GetModList));
+                modList = new List<IConfigurableMod>();
+                return modList;
             }
         }
 
         private void HandleException(Exception exc, string methodName)
         {
-            string info = $"[{ModName}:{methodName}] throws exception:\n{exc.Message}";
+            string info = $"[{ModName}:{methodName}] throws exception -  {exc.TargetSite?.Name}:\n{exc.Message}\n{exc.InnerException}\n{exc.Source}\n{exc.StackTrace}";
             ModAPI.Log.Write(info);
-            ShowHUDBigInfo(HUDBigInfoMessage(info, MessageType.Error, Color.red));
+            Debug.Log(info);
+            //ShowHUDBigInfo(HUDBigInfoMessage(info, MessageType.Error, Color.red));
         }
-
-        private void ModManager_onPermissionValueChanged(bool optionValue)
-        {
-            IsModActiveForMultiplayer = optionValue;
-            ShowHUDBigInfo(
-                          (optionValue ?
-                            HUDBigInfoMessage(PermissionChangedMessage($"granted"), MessageType.Info, Color.green)
-                            : HUDBigInfoMessage(PermissionChangedMessage($"revoked"), MessageType.Info, Color.yellow))
-                            );
-        }
-
-        public bool IsModActiveForMultiplayer { get; private set; }
-        public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
 
         public void ShowHUDBigInfo(string text)
         {
@@ -154,13 +208,7 @@ namespace ModHUD
             bigInfo.AddInfo(bigInfoData);
             bigInfo.Show(true);
         }
-
-        public void ShowHUDInfoLog(string itemID, string localizedTextKey)
-        {
-            Localization localization = GreenHellGame.Instance.GetLocalization();
-            ((HUDMessages)LocalHUDManager.GetHUD(typeof(HUDMessages))).AddMessage(localization.Get(localizedTextKey) + "  " + localization.Get(itemID));
-        }
-
+           
         private void EnableCursor(bool blockPlayer = false)
         {
             CursorManager.Get().ShowCursor(blockPlayer, false);
@@ -179,11 +227,17 @@ namespace ModHUD
             }
         }
 
-        private void Update()
+        protected virtual void Start()
         {
-            if (Input.GetKeyDown(ModKeybindingId))
+            ModManager.ModManager.onPermissionValueChanged += ModManager_onPermissionValueChanged;
+            ShortcutKey = GetShortcutKey(nameof(ShortcutKey));
+        }
+
+        protected virtual void Update()
+        {
+            if (Input.GetKeyDown(ShortcutKey))
             {
-                if (!ShowUI)
+                if (!ShowModHUDScreen)
                 {
                     InitData();
                 }
@@ -193,27 +247,27 @@ namespace ModHUD
 
         private void ToggleShowUI()
         {
-            ShowUI = !ShowUI;
+            ShowModHUDScreen = !ShowModHUDScreen;
         }
 
-        private void OnGUI()
+        protected virtual void OnGUI()
         {
-            if (ShowUI)
+            if (ShowModHUDScreen)
             {
                 InitData();
                 InitSkinUI();
-                InitWindow();
+                ShowModHUDWindow();
             }
         }
 
-        private void InitData()
+        protected virtual void InitData()
         {
             LocalHUDManager = HUDManager.Get();
             LocalPlayer = Player.Get();
             LocalWatch = Watch.Get();
             LocalPlayerConditionModule = PlayerConditionModule.Get();
             LocalItemsManager = ItemsManager.Get();
-            // InitLocalHUDCanvas();
+            LocalStylingManager = StylingManager.Get();
             InitLocalCompass();
         }
 
@@ -275,33 +329,33 @@ namespace ModHUD
             GUI.skin = ModAPI.Interface.Skin;
         }
 
-        private void InitWindow()
+        private void ShowModHUDWindow()
         {
             try
             {
-                int wid = GetHashCode();
-                ModHUDScreen = GUILayout.Window(wid, ModHUDScreen, InitModHUDScreen, "",
+                int ModHUDScreenId = ModHUDScreen.GetHashCode();
+                ModHUDScreen = GUILayout.Window(ModHUDScreenId, ModHUDScreen, InitModHUDScreen, string.Empty,
                                                                                         GUI.skin.label,
                                                                                         GUILayout.ExpandWidth(true),
-                                                                                        GUILayout.MinWidth(ModScreenMinWidth),
-                                                                                        GUILayout.MaxWidth(ModScreenMaxWidth),
+                                                                                        GUILayout.MinWidth(ModHUDScreenMinWidth),
+                                                                                        GUILayout.MaxWidth(ModHUDScreenMaxWidth),
                                                                                         GUILayout.ExpandHeight(true),
-                                                                                        GUILayout.MinHeight(ModScreenMinHeight),
-                                                                                        GUILayout.MaxHeight(ModScreenMaxHeight)
+                                                                                        GUILayout.MinHeight(ModHUDScreenMinHeight),
+                                                                                        GUILayout.MaxHeight(ModHUDScreenMaxHeight)
                                                                                        );
             }
             catch (Exception exc)
             {
-                HandleException(exc, nameof(InitWindow));
+                HandleException(exc, nameof(ShowModHUDWindow));
             }
         }
 
         private void InitModHUDScreen(int windowID)
         {
-            ModScreenStartPositionX = ModHUDScreen.x;
-            ModScreenStartPositionY = ModHUDScreen.y;
+            ModHUDScreenStartPositionX = ModHUDScreen.x;
+            ModHUDScreenStartPositionY = ModHUDScreen.y;
 
-            using (var modContentScope = new GUILayout.VerticalScope(GUI.skin.label))
+            using (new GUILayout.VerticalScope(GUI.skin.label))
             {
                 CompassBox();
                 MacronutrientsBox();
@@ -313,68 +367,66 @@ namespace ModHUD
         {
             try
             {
-                Color defaultC = GUI.color;
-                Color defaultCBG = GUI.backgroundColor;
                 if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
                 {
-                    using (var macroNutrientsScope = new GUILayout.VerticalScope(GUI.skin.label))
+                    using (new GUILayout.VerticalScope(GUI.skin.label))
                     {
-                        using (var fatScope = new GUILayout.HorizontalScope(GUI.skin.label))
+                        using (new GUILayout.HorizontalScope(GUI.skin.label))
                         {
                             GUI.backgroundColor = IconColors.GetColor(IconColors.Icon.Fat);
                             GUI.color = IconColors.GetColor(IconColors.Icon.Fat);
                             float fatMinValue = 0f;
                             float fatMaxValue = LocalPlayerConditionModule.GetMaxNutritionFat();
                             float fatValue = LocalPlayerConditionModule.GetNutritionFat();
-                            if(LocalItemsManager.m_ItemIconsSprites.TryGetValue("Watch_fat_icon", out Sprite localIcon))
-                            {
-                                GUILayout.Box(localIcon.texture, GUI.skin.label);
-                            }
+                            //if(LocalItemsManager.m_ItemIconsSprites.TryGetValue("Watch_fat_icon", out Sprite localIcon))
+                            //{
+                            //    GUILayout.Box(localIcon.texture, GUI.skin.label);
+                            //}
                             GUILayout.Label("fats");
                             GUILayout.HorizontalSlider(fatValue, fatMinValue, fatMaxValue, GUILayout.Width(175f));
                         }
 
-                        using (var carboScope = new GUILayout.HorizontalScope(GUI.skin.label))
+                        using (new GUILayout.HorizontalScope(GUI.skin.label))
                         {
                             GUI.backgroundColor = IconColors.GetColor(IconColors.Icon.Carbo);
                             GUI.color = IconColors.GetColor(IconColors.Icon.Carbo);
                             float carboMinValue = 0f;
                             float carboMaxValue = LocalPlayerConditionModule.GetMaxNutritionCarbo();
                             float carboValue = LocalPlayerConditionModule.GetNutritionCarbo();
-                            if(LocalItemsManager.m_ItemIconsSprites.TryGetValue("Watch_carbo_icon", out Sprite localIcon))
-                            {
-                                GUILayout.Box(localIcon.texture, GUI.skin.label);
-                            }
+                            //if(LocalItemsManager.m_ItemIconsSprites.TryGetValue("Watch_carbo_icon", out Sprite localIcon))
+                            //{
+                            //    GUILayout.Box(localIcon.texture, GUI.skin.label);
+                            //}
                             GUILayout.Label("carbs");
                             GUILayout.HorizontalSlider(carboValue, carboMinValue, carboMaxValue, GUILayout.Width(175f));
                         }
 
-                        using (var hydrationScope = new GUILayout.HorizontalScope(GUI.skin.label))
+                        using (new GUILayout.HorizontalScope(GUI.skin.label))
                         {
                             GUI.backgroundColor = IconColors.GetColor(IconColors.Icon.Hydration);
                             GUI.color = IconColors.GetColor(IconColors.Icon.Hydration);
                             float hydrationMinValue = 0f;
                             float hydrationMaxValue = LocalPlayerConditionModule.GetMaxHydration();
                             float hydrationValue = LocalPlayerConditionModule.GetHydration();
-                            if(LocalItemsManager.m_ItemIconsSprites.TryGetValue("Watch_water_icon", out Sprite localIcon))
-                            {
-                                GUILayout.Box(localIcon.texture, GUI.skin.label);
-                            }
+                            //if(LocalItemsManager.m_ItemIconsSprites.TryGetValue("Watch_water_icon", out Sprite localIcon))
+                            //{
+                            //    GUILayout.Box(localIcon.texture, GUI.skin.label);
+                            //}
                             GUILayout.Label("hydration");
                             GUILayout.HorizontalSlider(hydrationValue, hydrationMinValue, hydrationMaxValue, GUILayout.Width(175f));
                         }
 
-                        using (var proteinScope = new GUILayout.HorizontalScope(GUI.skin.label))
+                        using (new GUILayout.HorizontalScope(GUI.skin.label))
                         {
                             GUI.backgroundColor = IconColors.GetColor(IconColors.Icon.Proteins);
                             GUI.color = IconColors.GetColor(IconColors.Icon.Proteins);
                             float proteinsMinValue = 0f;
                             float proteinsMaxValue = LocalPlayerConditionModule.GetMaxNutritionProtein();
                             float proteinsValue = LocalPlayerConditionModule.GetNutritionProtein();
-                            if(LocalItemsManager.m_ItemIconsSprites.TryGetValue("Watch_protein_icon", out Sprite localIcon))
-                            {
-                                GUILayout.Box(localIcon.texture, GUI.skin.label);
-                            }
+                            //if(LocalItemsManager.m_ItemIconsSprites.TryGetValue("Watch_protein_icon", out Sprite localIcon))
+                            //{
+                            //    GUILayout.Box(localIcon.texture, GUI.skin.label);
+                            //}
                             GUILayout.Label("proteins");
                             GUILayout.HorizontalSlider(proteinsValue, proteinsMinValue, proteinsMaxValue, GUILayout.Width(175f));
                         }
@@ -382,15 +434,13 @@ namespace ModHUD
                 }
                 else
                 {
-                    using (var infoScope = new GUILayout.VerticalScope(GUI.skin.label))
+                    using (new GUILayout.VerticalScope(GUI.skin.label))
                     {
-                        GUI.color = Color.yellow;
-                        GUILayout.Label(OnlyForSinglePlayerOrHostMessage(), GUI.skin.label);
-                        GUI.color = Color.white;
+                        GUILayout.Label(OnlyForSinglePlayerOrHostMessage(), LocalStylingManager.ColoredCommentLabel(Color.yellow));
                     }
                 }
-                GUI.color = defaultC;
-                GUI.backgroundColor = defaultCBG;
+                GUI.color = LocalStylingManager.DefaultColor;
+                GUI.backgroundColor = LocalStylingManager.DefaultBackGroundColor;
             }
             catch (Exception exc)
             {
@@ -402,35 +452,12 @@ namespace ModHUD
         {
             try
             {
-                Color defaultC = GUI.color;
-                Color defaultBgC = GUI.backgroundColor;
-                GUIStyle compassLabel = new GUIStyle(GUI.skin.label)
-                {
-                    fontSize = 20,
-                    alignment = TextAnchor.MiddleCenter,
-                    fontStyle = FontStyle.Bold
-                };
-
-                GUIStyle positionLabel = new GUIStyle(GUI.skin.label)
-                {
-                    fontSize = 20,
-                    alignment = TextAnchor.MiddleRight,
-                    fontStyle = FontStyle.Bold
-                };
-
-                GUIStyle directionLabel = new GUIStyle(GUI.skin.label)
-                {
-                    fontSize = 20,
-                    alignment = TextAnchor.MiddleLeft,
-                    fontStyle = FontStyle.Bold
-                };
-
                 if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
                 {
-                    using (var compassScope = new GUILayout.VerticalScope(GUI.skin.label))
+                    using (new GUILayout.VerticalScope(GUI.skin.label))
                     {
                         GUI.backgroundColor = Color.black;
-                        using (var directionScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                        using (new GUILayout.HorizontalScope(GUI.skin.box))
                         {
                             Vector3 forward = LocalPlayer.gameObject.transform.forward;
                             float angle = Vector3.Angle(Vector3.forward, forward);
@@ -456,7 +483,7 @@ namespace ModHUD
 
                             if (z > 0.0f && z < 0.80f && w >= -1.0f && w < -0.70f)
                             {
-                                GUI.color = defaultC;
+                                GUI.color = LocalStylingManager.DefaultColor;
                                 direction = "NW";
                                 zDir = "^ ^";
                                 wDir = "< <";
@@ -472,7 +499,7 @@ namespace ModHUD
 
                             if (z >= 0.80f && z<= 1.0f  && w >= -0.60f && w < 0.0f)
                             {
-                                GUI.color = defaultC;
+                                GUI.color = LocalStylingManager.DefaultColor;
                                 direction = "SW";
                                 zDir = "v v";
                                 wDir = "< <";
@@ -487,7 +514,7 @@ namespace ModHUD
 
                             if (z > 0.70f && z <= 1.0f && w > 0.0f && w < 0.70f)
                             {
-                                GUI.color = defaultC;
+                                GUI.color = LocalStylingManager.DefaultColor;
                                 direction = "SE";
                                 zDir = "v v";
                                 wDir = "> >";
@@ -495,7 +522,7 @@ namespace ModHUD
 
                             if (z >= 0.70f && w >= 0.70f)
                             {
-                                GUI.color = defaultC;
+                                GUI.color = LocalStylingManager.DefaultColor;
                                 direction = "E";
                                 zDir = $"- -";
                                 wDir = $"> >";
@@ -503,49 +530,49 @@ namespace ModHUD
 
                             if (z > 0.0f && z < 0.70f  && w >= 0.80f && w < 1.0f)
                             {
-                                GUI.color = defaultC;
+                                GUI.color = LocalStylingManager.DefaultColor;
                                 direction = "NE";
                                 zDir = "^ ^";
                                 wDir = "> >";
                             }
 
-                            GUILayout.Label($"{zDir}", compassLabel, GUILayout.Width(50f));
-                            GUILayout.Label($"{direction}", compassLabel, GUILayout.Width(200f));
-                            GUILayout.Label($"{wDir}", compassLabel, GUILayout.Width(50f));
+                            GUILayout.Label($"{zDir}", LocalStylingManager.CompassLabel, GUILayout.Width(50f));
+                            GUILayout.Label($"{direction}", LocalStylingManager.CompassLabel, GUILayout.Width(200f));
+                            GUILayout.Label($"{wDir}", LocalStylingManager.CompassLabel, GUILayout.Width(50f));
                         }
 
-                        GUI.backgroundColor = defaultBgC;
-                        using (var positionScope = new GUILayout.VerticalScope(GUI.skin.label))
+                        GUI.backgroundColor = LocalStylingManager.DefaultBackGroundColor;
+                        using (new GUILayout.VerticalScope(GUI.skin.label))
                         {
                             LocalPlayer.GetGPSCoordinates(out int gps_lat, out int gps_long);
                             string GPSCoordinatesW = gps_lat.ToString();
                             string GPSCoordinatesS = gps_long.ToString();
-                            using (var coordinatesWScope = new GUILayout.HorizontalScope(GUI.skin.label))
+                            using (new GUILayout.HorizontalScope(GUI.skin.label))
                             {
-                                GUI.color = defaultC;
-                                GUILayout.Label($"{ GPSCoordinatesW}", positionLabel, GUILayout.Width(75f));
+                                GUI.color = LocalStylingManager.DefaultColor;
+                                GUILayout.Label($"{GPSCoordinatesW}", LocalStylingManager.PositionLabel, GUILayout.Width(75f));
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Hydration);
-                                GUILayout.Label($"\'W", directionLabel, GUILayout.Width(75f));
+                                GUILayout.Label($"\'W", LocalStylingManager.DirectionLabel, GUILayout.Width(75f));
                             }
-                            using (var coordinatesSScope = new GUILayout.HorizontalScope(GUI.skin.label))
+                            using (new GUILayout.HorizontalScope(GUI.skin.label))
                             {
-                                GUI.color = defaultC;
-                                GUILayout.Label($"{ GPSCoordinatesS}", positionLabel, GUILayout.Width(75f));
+                                GUI.color = LocalStylingManager.DefaultColor;
+                                GUILayout.Label($"{GPSCoordinatesS}", LocalStylingManager.PositionLabel, GUILayout.Width(75f));
                                 GUI.color = IconColors.GetColor(IconColors.Icon.Proteins);
-                                GUILayout.Label($"\'S", directionLabel, GUILayout.Width(75f));
+                                GUILayout.Label($"\'S", LocalStylingManager.DirectionLabel, GUILayout.Width(75f));
                             }
                         }
                     }
                 }
                 else
                 {
-                    using (var infoScope = new GUILayout.VerticalScope(GUI.skin.label))
+                    using (new GUILayout.VerticalScope(GUI.skin.label))
                     {
-                        GUI.color = Color.yellow;
-                        GUILayout.Label(OnlyForSinglePlayerOrHostMessage(), GUI.skin.label);
+                        GUILayout.Label(OnlyForSinglePlayerOrHostMessage(), LocalStylingManager.ColoredCommentLabel(Color.yellow));
                     }
                 }
-                GUI.color = defaultC;
+                GUI.color = LocalStylingManager.DefaultColor;
+                GUI.backgroundColor = LocalStylingManager.DefaultBackGroundColor;
             }
             catch (Exception exc)
             {

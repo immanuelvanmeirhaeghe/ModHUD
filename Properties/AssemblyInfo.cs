@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("ModAPI.ModHUD")]
 [assembly: AssemblyDescription("ModHUD is a mod for Green Hell that adds a player HUD which displays player stats and compass.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Dragon Legion")]
+[assembly: AssemblyCompany("[Dragon Legion] Immaanuel")]
 [assembly: AssemblyProduct("ModAPI.ModHUD")]
-[assembly: AssemblyCopyright("Freeware - open sourced")]
+[assembly: AssemblyCopyright("Freeware")]
 [assembly: AssemblyTrademark("None")]
 [assembly: AssemblyCulture("")]
 

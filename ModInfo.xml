@@ -1,8 +1,8 @@
 <Mod ID="ModHUD">
   <Compatible>2.4.2</Compatible>
-  <Button Standard="NumPad8" ID="ModHUDBindingKeyId">
+  <Button Standard="NumPad7" ID="ModKeybindingId">
     <Name>
-      <EN>ModHUDBindingKeyId</EN>
+      <EN>ModKeybindingId</EN>
     </Name>
     <Description>
       <EN>Key bound to ModHUD UI.</EN>
@@ -14,5 +14,5 @@
   <Description>
     <EN>ModHUD is a mod for Green Hell that adds a player HUD which displays player stats and compass.</EN>
   </Description>
-  <Version>1.0.0.1</Version>
+  <Version>1.0.0.2</Version>
 </Mod>
