@@ -130,7 +130,7 @@ namespace ModHUD
             {
                 if (buttonID==nameof(ShortcutKey))
                 {
-                    return KeyCode.Keypad7;
+                    return KeyCode.Keypad0;
                 }
             }
             return KeyCode.None;
@@ -244,11 +244,11 @@ namespace ModHUD
                 {
                     InitData();
                 }
-                ToggleShowUI();
+                ToggleShowModHUD();
             }
         }
 
-        protected virtual void ToggleShowUI()
+        protected virtual void ToggleShowModHUD()
         {
             ShowModHUDScreen = !ShowModHUDScreen;
         }
@@ -334,26 +334,19 @@ namespace ModHUD
 
         protected virtual void ShowModHUDWindow()
         {
-            try
+            if (ModHUDScreenId <= 0)
             {
-                if (ModHUDScreenId <= 0)
-                {
-                    ModHUDScreenId = ModHUDScreen.GetHashCode();
-                }                
-                ModHUDScreen = GUILayout.Window(ModHUDScreenId, ModHUDScreen, InitModHUDScreen, string.Empty,
-                                                                                        GUI.skin.label,
-                                                                                        GUILayout.ExpandWidth(true),
-                                                                                        GUILayout.MinWidth(ModHUDScreenMinWidth),
-                                                                                        GUILayout.MaxWidth(ModHUDScreenMaxWidth),
-                                                                                        GUILayout.ExpandHeight(true),
-                                                                                        GUILayout.MinHeight(ModHUDScreenMinHeight),
-                                                                                        GUILayout.MaxHeight(ModHUDScreenMaxHeight)
-                                                                                       );
+                ModHUDScreenId = ModHUDScreen.GetHashCode();
             }
-            catch (Exception exc)
-            {
-                HandleException(exc, nameof(ShowModHUDWindow));
-            }
+            ModHUDScreen = GUILayout.Window(ModHUDScreenId, ModHUDScreen, InitModHUDScreen, string.Empty,
+                                                                                    GUI.skin.label,
+                                                                                    GUILayout.ExpandWidth(true),
+                                                                                    GUILayout.MinWidth(ModHUDScreenMinWidth),
+                                                                                    GUILayout.MaxWidth(ModHUDScreenMaxWidth),
+                                                                                    GUILayout.ExpandHeight(true),
+                                                                                    GUILayout.MinHeight(ModHUDScreenMinHeight),
+                                                                                    GUILayout.MaxHeight(ModHUDScreenMaxHeight)
+                                                                                   );
         }
 
         protected virtual void InitModHUDScreen(int windowID)
