@@ -13,9 +13,10 @@ using UnityEngine.UI;
 
 namespace ModHUD
 {
+
     /// <summary>
     /// ModHUD is a mod for Green Hell that adds a player HUD which displays player stats and compass.
-    /// Press Keypad7 (default) or the key configurable in ModAPI to open the mod screen.
+    /// Press Keypad0 (default) or the key configurable in ModAPI to open the mod screen.
     /// </summary>
     public class ModHUD : MonoBehaviour
     {
@@ -33,6 +34,8 @@ namespace ModHUD
         private static float ModHUDScreenStartPositionY { get; set; } = Screen.height - ModHUDScreenTotalHeight - 75f;
         private static bool IsModHUDScreenMinimized { get; set; } = false;
         private bool ShowModHUDScreen = true;
+        private static int ModHUDScreenId { get; set; } = 0;
+
         public static Rect ModHUDScreen = new Rect(ModHUDScreenStartPositionX, ModHUDScreenStartPositionY, ModHUDScreenTotalWidth, ModHUDScreenTotalHeight);
 
         private static Player LocalPlayer;
@@ -77,9 +80,9 @@ namespace ModHUD
         private string HUDBigInfoMessage(string message, MessageType messageType, Color? headcolor = null)
             => $"<color=#{(headcolor != null ? ColorUtility.ToHtmlStringRGBA(headcolor.Value) : ColorUtility.ToHtmlStringRGBA(Color.red))}>{messageType}</color>\n{message}";
         
-        private KeyCode ShortcutKey { get; set; } = KeyCode.Keypad7;
+        private KeyCode ShortcutKey { get; set; } = KeyCode.Keypad0;
 
-        private void ModManager_onPermissionValueChanged(bool optionValue)
+        protected virtual void ModManager_onPermissionValueChanged(bool optionValue)
         {
             string reason = optionValue ? "the game host allowed usage" : "the game host did not allow usage";
             IsModActiveForMultiplayer = optionValue;
@@ -183,7 +186,7 @@ namespace ModHUD
             }
         }
 
-        private void HandleException(Exception exc, string methodName)
+        protected virtual void HandleException(Exception exc, string methodName)
         {
             string info = $"[{ModName}:{methodName}] throws exception -  {exc.TargetSite?.Name}:\n{exc.Message}\n{exc.InnerException}\n{exc.Source}\n{exc.StackTrace}";
             ModAPI.Log.Write(info);
@@ -209,7 +212,7 @@ namespace ModHUD
             bigInfo.Show(true);
         }
            
-        private void EnableCursor(bool blockPlayer = false)
+        protected virtual void EnableCursor(bool blockPlayer = false)
         {
             CursorManager.Get().ShowCursor(blockPlayer, false);
 
@@ -245,7 +248,7 @@ namespace ModHUD
             }
         }
 
-        private void ToggleShowUI()
+        protected virtual void ToggleShowUI()
         {
             ShowModHUDScreen = !ShowModHUDScreen;
         }
@@ -271,7 +274,7 @@ namespace ModHUD
             InitLocalCompass();
         }
 
-        private void InitLocalCompass()
+        protected virtual void InitLocalCompass()
         {
             LocalCompass = LocalWatch?.m_Canvas.transform.Find("Compass").gameObject.transform.Find("CompassIcon").gameObject;
             if (LocalCompass == null)
@@ -281,7 +284,7 @@ namespace ModHUD
             }
         }
 
-        private void InitLocalHUDCanvas()
+        protected virtual void InitLocalHUDCanvas()
         {
             LocalHUDCanvas = LocalWatch?.m_Canvas?.transform.Find("Macronutrients").gameObject;
             if (LocalHUDCanvas != null)
@@ -324,16 +327,19 @@ namespace ModHUD
             }
         }
 
-        private void InitSkinUI()
+        protected virtual void InitSkinUI()
         {
             GUI.skin = ModAPI.Interface.Skin;
         }
 
-        private void ShowModHUDWindow()
+        protected virtual void ShowModHUDWindow()
         {
             try
             {
-                int ModHUDScreenId = ModHUDScreen.GetHashCode();
+                if (ModHUDScreenId <= 0)
+                {
+                    ModHUDScreenId = ModHUDScreen.GetHashCode();
+                }                
                 ModHUDScreen = GUILayout.Window(ModHUDScreenId, ModHUDScreen, InitModHUDScreen, string.Empty,
                                                                                         GUI.skin.label,
                                                                                         GUILayout.ExpandWidth(true),
@@ -350,7 +356,7 @@ namespace ModHUD
             }
         }
 
-        private void InitModHUDScreen(int windowID)
+        protected virtual void InitModHUDScreen(int windowID)
         {
             ModHUDScreenStartPositionX = ModHUDScreen.x;
             ModHUDScreenStartPositionY = ModHUDScreen.y;
@@ -363,7 +369,7 @@ namespace ModHUD
             GUI.DragWindow(new Rect(0f, 0f, 10000f, 10000f));
         }
 
-        private void MacronutrientsBox()
+        protected virtual void MacronutrientsBox()
         {
             try
             {
@@ -448,7 +454,7 @@ namespace ModHUD
             }
         }
 
-        private void CompassBox()
+        protected virtual void CompassBox()
         {
             try
             {
@@ -456,7 +462,7 @@ namespace ModHUD
                 {
                     using (new GUILayout.VerticalScope(GUI.skin.label))
                     {
-                        GUI.backgroundColor = Color.black;
+                        GUI.backgroundColor = LocalStylingManager.DefaultClearColor;
                         using (new GUILayout.HorizontalScope(GUI.skin.box))
                         {
                             Vector3 forward = LocalPlayer.gameObject.transform.forward;
@@ -562,6 +568,7 @@ namespace ModHUD
                                 GUILayout.Label($"\'S", LocalStylingManager.DirectionLabel, GUILayout.Width(75f));
                             }
                         }
+                   
                     }
                 }
                 else
@@ -579,5 +586,6 @@ namespace ModHUD
                 HandleException(exc, nameof(CompassBox));
             }
         }
+    
     }
 }

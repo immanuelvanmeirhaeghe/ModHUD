@@ -1,11 +1,11 @@
 <Mod ID="ModHUD">
   <Compatible>2.4.2</Compatible>
-  <Button Standard="NumPad7" ID="ModKeybindingId">
+  <Button Standard="NumPad0" ID="ShortcutKey">
     <Name>
-      <EN>ModKeybindingId</EN>
+      <EN>Press shortcut key</EN>
     </Name>
     <Description>
-      <EN>Key bound to ModHUD UI.</EN>
+      <EN>to opoen main mod screen.</EN>
     </Description>
   </Button>
   <Name>

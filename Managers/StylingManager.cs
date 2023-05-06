@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace ModHUD.Managers
@@ -59,28 +55,25 @@ namespace ModHUD.Managers
         public Color DefaultColor = GUI.color;
         public Color DefaultContentColor = GUI.contentColor;
         public Color DefaultBackGroundColor = GUI.backgroundColor;
-
+        public Color DefaultClearColor => Color.clear;
         public GUIStyle CompassLabel => new GUIStyle(GUI.skin.label)
         {
             fontSize = 20,
             alignment = TextAnchor.MiddleCenter,
             fontStyle = FontStyle.Bold
         };
-
         public GUIStyle PositionLabel => new GUIStyle(GUI.skin.label)
         {
             fontSize = 20,
             alignment = TextAnchor.MiddleRight,
             fontStyle = FontStyle.Bold
         };
-
         public GUIStyle DirectionLabel => new GUIStyle(GUI.skin.label)
         {
             fontSize = 20,
             alignment = TextAnchor.MiddleLeft,
             fontStyle = FontStyle.Bold
         };
-
         public GUIStyle SelectedGridButton => new GUIStyle(GUI.skin.button)
         {
             alignment = TextAnchor.MiddleCenter,
@@ -158,6 +151,7 @@ namespace ModHUD.Managers
             fontSize = 12,
             stretchWidth = true
         };
+
         public GUIStyle ColoredSelectedGridButton(bool isSelectedIndex)
         {
             GUIStyle style = SelectedGridButton;

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace ModHUD.Data.Enums
+﻿namespace ModHUD.Data.Enums
 {
     /// <summary>
     /// Enumerates event identifiers
